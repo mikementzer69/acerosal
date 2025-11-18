@@ -1,0 +1,189 @@
+/* ===========================================================
+   GRID LAYOUTS PARA FORMULARIOS DE COMPRAS Y ESTRUCTURA GENERAL
+   =========================================================== */
+
+/* ----------- GRID PRINCIPAL DEL FORMULARIO ----------- */
+.form-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 10px;
+    width: 100%;
+    min-height: 90vh;
+}
+
+/* ----------- SECCIONES ----------- */
+.fechas,
+.costos,
+.otros-campos,
+.detalle-compra,
+.totales {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 12px;
+    background: #fff;
+}
+
+/* ----------- POSICIONAMIENTO ----------- */
+.fechas { grid-column: 1 / 2; grid-row: 1 / 2; }
+.costos { grid-column: 2 / 3; grid-row: 1 / 3; }
+.otros-campos { grid-column: 1 / 2; grid-row: 2 / 3; }
+.detalle-compra { grid-column: 1 / 3; grid-row: 3 / 4; }
+.totales { grid-column: 2 / 3; grid-row: 4 / 5; }
+
+/* ----------- RESPONSIVE ----------- */
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+    .fechas, .costos, .otros-campos, .detalle-compra, .totales {
+        grid-column: 1 / 2;
+        grid-row: auto;
+    }
+}
+
+/* ===========================================================
+   TABLAS
+   =========================================================== */
+.form-grid table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+.form-grid table th,
+.form-grid table td {
+    padding: 6px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+.form-grid h3 {
+    margin-top: 0;
+    font-size: 1rem;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+/* ===========================================================
+   BLOQUES DE FAMILIAS
+   =========================================================== */
+.familia-bloque {
+    margin-top: 15px;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    padding: 10px;
+    background: #fafafa;
+}
+.familia-bloque h4 {
+    margin: 0 0 8px 0;
+    background: #e6f0ff;
+    padding: 6px;
+    border-radius: 4px;
+    color: #003366;
+    font-size: 0.95rem;
+}
+
+/* ----------- TABLAS POR FAMILIA ----------- */
+.tabla-detalle-familia {
+    width: 100%;
+    border-collapse: collapse;
+}
+.tabla-detalle-familia th,
+.tabla-detalle-familia td {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+.tabla-detalle-familia thead th {
+    background: #f2f2f2;
+    font-weight: bold;
+}
+
+/* ----------- FILAS DE TOTALES ----------- */
+.tabla-detalle-familia tfoot tr.totales-familia th {
+    font-weight: bold;
+    background: #f5f5f5;
+}
+
+/* ----------- RESUMEN (CIF, BODEGA, TOTAL) ----------- */
+.tabla-detalle-familia tfoot tr.resumen-familia th {
+    background: #f9f9f9;
+    text-align: right;
+}
+.tabla-detalle-familia input[readonly] {
+    background: #f2f2f2;
+    border: 1px solid #ccc;
+    text-align: right;
+}
+
+/* ===========================================================
+   BOTONES
+   =========================================================== */
+button {
+    background-color: #0055aa;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+button:hover { background-color: #003f7f; }
+.btnEliminarFila { background-color: #cc0000; }
+.btnEliminarFila:hover { background-color: #990000; }
+
+/* ===========================================================
+   LAYOUT GLOBAL
+   =========================================================== */
+body.layout-grid {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: grid;
+    grid-template-areas:
+        "header"
+        "menu"
+        "content"
+        "footer";
+    grid-template-rows: auto auto 1fr 40px;
+    grid-template-columns: 1fr;
+    height: 100vh;
+}
+
+/* ----------- HEADER ----------- */
+.header { grid-area: header; background: #003366; color: white; }
+
+/* ----------- MENÚ ----------- */
+.menu {
+    grid-area: menu;
+    background: #0055aa;
+    color: white;
+    padding: 0.5rem 1rem;
+}
+.menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 1rem;
+}
+.menu a {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    display: block;
+}
+.menu a:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+/* ----------- CONTENT ----------- */
+.content { grid-area: content; padding: 1rem; overflow-y: auto; }
+
+/* ----------- FOOTER ----------- */
+.footer {
+    grid-area: footer;
+    background: #003366;
+    color: white;
+    text-align: center;
+    line-height: 40px;
+}

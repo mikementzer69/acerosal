@@ -1,0 +1,32 @@
+.menu-elegante {
+    background-color: #111827; /* Azul oscuro / negro elegante */
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.menu-elegante .nav-link {
+    color: #e5e7eb !important; /* gris muy claro */
+    font-weight: 500;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.menu-elegante .nav-link:hover {
+    color: #93c5fd !important; /* celeste suave */
+}
+
+.menu-dropdown {
+    background: #1f2937; /* gris oscuro */
+    border-radius: 8px;
+    border: 1px solid #374151;
+}
+
+.menu-dropdown .dropdown-item {
+    color: #e5e7eb;
+    padding: 10px 16px;
+}
+
+.menu-dropdown .dropdown-item:hover {
+    background: #374151;
+    color: white;
+}

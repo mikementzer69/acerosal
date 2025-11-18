@@ -1,0 +1,352 @@
+/* ==========================================================
+   INVENTARIO - ERP ACEROSAL
+   Archivo: /css/inventario.css
+   Autor: Ricardo Sibrián / ChatGPT
+   ========================================================== */
+
+/* =======  LAYOUT GENERAL DEL MÓDULO INVENTARIO  ======= */
+.listbox-compras {
+    float: left;
+    width: 25%;
+    padding: 10px;
+    background: #f7f7f7;
+    border-right: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+.contenido-inventario {
+    float: right;
+    width: 74%;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+/* =======  LISTBOX DE COMPRAS NUEVAS  ======= */
+.listbox-compras h3 {
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.listbox {
+    width: 100%;
+    min-height: 200px;
+    border: 1px solid #999;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: #fff;
+    padding: 5px;
+}
+
+/* =======  GRID DE INFORMACIÓN DE COMPRA  ======= */
+.grid-info-compra {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    background: #eef3f7;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    border: 1px solid #d0d7de;
+}
+
+.grid-info-compra div {
+    display: flex;
+    flex-direction: column;
+}
+
+.grid-info-compra label {
+    font-weight: bold;
+    color: #333;
+}
+
+.grid-info-compra span {
+    font-size: 15px;
+    color: #111;
+}
+
+.grid-info-compra .numero-compra {
+    grid-column: 1 / -1;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #004b91;
+}
+
+/* =======  FORMULARIO DE LOTE  ======= */
+.form-lote {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 16px;
+    background-color: #fdfdfd;
+    transition: border 0.3s ease-in-out;
+}
+
+.grid-lote {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.grid-lote label {
+    font-weight: bold;
+    color: #333;
+    font-size: 13px;
+}
+
+.grid-lote input {
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+/* =======  TABLA DE PIEZAS  ======= */
+.tabla-piezas-container {
+    margin-top: 8px;
+}
+
+.tabla-piezas-container h5 {
+    margin-bottom: 5px;
+    color: #0066cc;
+    font-size: 14px;
+}
+
+.tabla-piezas {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: #fff;
+}
+
+.tabla-piezas th,
+.tabla-piezas td {
+    border: 1px solid #ccc;
+    padding: 5px;
+    text-align: center;
+}
+
+.tabla-piezas th {
+    background: #e8eef4;
+    font-weight: bold;
+}
+
+.tabla-piezas input {
+    width: 95%;
+    padding: 3px;
+    border-radius: 4px;
+    border: 1px solid #aaa;
+}
+
+.tabla-piezas input[readonly] {
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+/* =======  BOTONES ======= */
+.btn-agregar-pieza {
+    margin-top: 6px;
+    background-color: #0094d9;
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-agregar-pieza:hover {
+    background-color: #007ab5;
+}
+
+.btn-eliminar-pieza {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 3px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-eliminar-pieza:hover {
+    background-color: #c0392b;
+}
+
+.btn-guardar {
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-guardar:hover {
+    background-color: #004b91;
+}
+
+/* =======  AVISOS DE VALIDACIÓN ======= */
+.aviso-lote {
+    margin-top: 6px;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.aviso-lote.ok {
+    color: green;
+}
+
+.aviso-lote.error {
+    color: red;
+}
+
+/* =======  CONTENEDOR FINAL ======= */
+.acciones-final {
+    clear: both;
+    margin-top: 15px;
+    text-align: right;
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+}
+
+
+/* --------------------------------------------------------
+   ESTILOS PARA VALIDACIÓN DE LOTES Y TOTALES
+-------------------------------------------------------- */
+
+/* Fila de totales (al pie de cada tabla de piezas) */
+.fila-totales th {
+    background-color: #eef3f8;
+    font-weight: bold;
+    text-align: right;
+    padding: 4px 6px;
+    border-top: 2px solid #ccc;
+}
+
+/* Contenedor de cada lote */
+.form-lote {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    transition: border-color 0.3s ease;
+}
+
+/* Mensaje de validación (correcto o error) */
+.aviso-lote {
+    margin-top: 8px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.aviso-lote.ok {
+    color: #218838;
+}
+
+.aviso-lote.error {
+    color: #d93025;
+}
+
+/* Botón eliminar pieza */
+.btn-eliminar-pieza {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-eliminar-pieza:hover {
+    background: #f1b0b7;
+}
+
+/* Tabla de piezas */
+.table-piezas {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.table-piezas th,
+.table-piezas td {
+    border: 1px solid #ccc;
+    padding: 5px;
+    text-align: center;
+}
+
+.table-piezas th {
+    background: #f5f6fa;
+}
+
+.grid-lote {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.grid-lote div {
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-lote label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.grid-lote input {
+  padding: 6px 8px;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.grid-lote input::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+.grid-lote input[readonly] {
+  background-color: #f3f3f3;
+}
+
+.validacion-lote {
+  font-size: 0.8rem;
+  margin-top: 3px;
+}
+
+@media (max-width: 768px) {
+  .grid-lote {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fila-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.fila-grid label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.3rem;
+}
+
+.fila-grid input,
+.fila-grid select {
+    width: 100%;
+    padding: 0.4rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}

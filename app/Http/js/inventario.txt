@@ -1,0 +1,336 @@
+/* ==========================================================
+   INVENTARIO - ERP ACEROSAL
+   Versión actualizada (2025)
+   ========================================================== */
+
+// ==========================================================
+// 🔹 VARIABLES GLOBALES
+// ==========================================================
+const listbox = document.getElementById("listboxCompras");
+const infoCompra = document.getElementById("infoCompra");
+const contenedorLotes = document.getElementById("contenedorLotes");
+let currentCompraId = null;
+let data = { detalle: [] };
+
+// ==========================================================
+// 🧱 CARGAR COMPRA SELECCIONADA DESDE LISTBOX
+// ==========================================================
+listbox?.addEventListener("change", async (e) => {
+    currentCompraId = e.target.value;
+    if (!currentCompraId) return;
+
+    contenedorLotes.innerHTML = "<p>Cargando datos...</p>";
+
+    const res = await fetch(`/Controladores/ControladorInventario.php?accion=obtenerDetalleCompra&id=${currentCompraId}`);
+    const result = await res.json();
+
+    if (!result || !result.compra) {
+        infoCompra.innerHTML = "<p>❌ Error cargando la compra.</p>";
+        contenedorLotes.innerHTML = "";
+        return;
+    }
+
+    data = result;
+    mostrarInfoCompra(result.compra);
+    generarLotes(result.detalle);
+});
+
+// ==========================================================
+// 🧾 MOSTRAR DATOS GENERALES DE LA COMPRA
+// ==========================================================
+function mostrarInfoCompra(compra) {
+    infoCompra.innerHTML = `
+        <div class="numero-factura">Factura Nº ${compra.Numero_Factura ?? "—"}</div>
+        <div><label>Fecha emisión:</label><span>${compra.Fecha_EmisionF ?? "—"}</span></div>
+        <div><label>Fecha ingreso:</label><span>${compra.Fecha_Ingreso ?? "—"}</span></div>
+        <div><label>Proveedor:</label><span>${compra.Proveedor ?? "—"}</span></div>
+        <div><label>Empresa:</label><span>${compra.Empresa ?? "—"}</span></div>
+    `;
+}
+
+// ==========================================================
+// 📦 GENERAR LOTES DINÁMICOS POR PRODUCTO
+// ==========================================================
+function generarLotes(detalle) {
+    contenedorLotes.innerHTML = "";
+    const fecha = new Date().toISOString().slice(0, 10);
+
+    detalle.forEach((prod, index) => {
+        const pesoLb = parseFloat(prod.Peso_Total_Libras) || 0;
+        const cantidad = parseFloat(prod.Cantidad_Total_Metros) || 0;
+        const relacion = cantidad > 0 ? (pesoLb / cantidad).toFixed(6) : 0;
+        const codigoLote = `L-${String(index + 1).padStart(4, "0")}`;
+
+        const html = `
+    <form class="form-lote" data-id="${prod.idProductos}">
+        <h4>${prod.Codigo ?? ""} - ${prod.Descripcion}</h4>
+
+        <!-- 🧱 GRID DE 3x2 -->
+        <div class="grid-lote">
+            <div>
+                <label>Código de lote:</label>
+                <input 
+                    type="text" 
+                    name="codigoLote" 
+                    class="codigoLote" 
+                    id="codigoLote_${prod.idProductos}" 
+                    data-idproducto="${prod.idProductos}" 
+                    placeholder="Ej: L-0001">
+                <div class="validacion-lote" id="valida_${prod.idProductos}"></div>
+            </div>
+
+            <div>
+                <label>Fecha ingreso:</label>
+                <input type="date" name="fechaIngreso" value="${fecha}" readonly>
+            </div>
+
+            <div>
+                <label>Total piezas:</label>
+                <input type="number" name="totalPiezas" id="totalPiezas_${prod.idProductos}" value="1" readonly>
+            </div>
+
+            <div>
+                <label>Peso total (lb):</label>
+                <input type="number" step="0.01" name="pesoTotal" value="${pesoLb}" readonly>
+            </div>
+
+            <div>
+                <label>Cantidad total (m):</label>
+                <input type="number" step="0.01" name="cantidadTotal" value="${cantidad}" readonly>
+            </div>
+
+            <div>
+                <label>Relación lb/m:</label>
+                <input type="number" step="0.0001" name="relacion" value="${relacion}" readonly>
+            </div>
+        </div>
+
+        <!-- 🧮 TABLA DE PIEZAS -->
+        <table class="tabla-piezas" id="tablaPiezas_${prod.idProductos}">
+            <thead>
+                <tr>
+                    <th>Código pieza</th>
+                    <th>Metros inicial</th>
+                    <th>Libras inicial</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${crearFilaPieza(prod, "", relacion, cantidad, pesoLb, 1)}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th>Total</th>
+                    <th id="totalMetros_${prod.idProductos}">${cantidad.toFixed(2)}</th>
+                    <th id="totalLibras_${prod.idProductos}">${pesoLb.toFixed(2)}</th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+
+        <button type="button" class="btn-agregar" data-id="${prod.idProductos}">➕ Agregar pieza</button>
+        <div class="aviso-lote"></div>
+    </form>
+`;
+
+        contenedorLotes.insertAdjacentHTML("beforeend", html);
+    });
+}
+
+// ==========================================================
+// 🧩 CREAR FILA DE PIEZA
+// ==========================================================
+function crearFilaPieza(prod, codigoLote, relacion, cantidad, pesoLb, correlativo) {
+    const codigoProd = prod.Codigo ?? `PRD${prod.idProductos}`;
+    const codigoPieza = `${codigoProd}-${codigoLote}-${String(correlativo).padStart(3, "0")}`;
+    return `
+        <tr>
+            <td><input type="text" name="codigoPieza" value="${codigoPieza}" readonly></td>
+            <td><input type="number" step="0.01" name="metrosInicial" value="${cantidad.toFixed(2)}"></td>
+            <td><input type="number" step="0.01" name="librasInicial" value="${pesoLb.toFixed(2)}"></td>
+            <td><button type="button" class="btn-eliminar">🗑️</button></td>
+        </tr>
+    `;
+}
+
+
+// ==========================================================
+// ⚙️ EVENTO: AGREGAR / ELIMINAR PIEZAS
+// ==========================================================
+document.addEventListener("click", (e) => {
+    // ➕ Agregar pieza
+    if (e.target.classList.contains("btn-agregar")) {
+        const idProd = e.target.dataset.id;
+        const codigoLoteInput = document.getElementById(`codigoLote_${idProd}`);
+        const codigoLote = codigoLoteInput.value.trim();
+
+        // 🚫 Validar que haya código de lote
+        if (!codigoLote) {
+            alert("⚠️ Escribe un código de lote antes de agregar piezas.");
+            codigoLoteInput.focus();
+            return;
+        }
+
+        const tabla = document.querySelector(`#tablaPiezas_${idProd} tbody`);
+        const filas = tabla.querySelectorAll("tr").length;
+        const prod = data.detalle.find(p => p.idProductos == idProd);
+        const relacion = parseFloat(document.querySelector(`[name='relacion']`).value);
+
+        tabla.insertAdjacentHTML("beforeend", crearFilaPieza(prod, codigoLote, relacion, 0, 0, filas + 1));
+        actualizarTotales(idProd);
+    }
+
+    // 🗑️ Eliminar pieza
+    if (e.target.classList.contains("btn-eliminar")) {
+        const fila = e.target.closest("tr");
+        const idProd = e.target.closest(".form-lote").dataset.id;
+        fila.remove();
+        actualizarTotales(idProd);
+    }
+});
+
+// ==========================================================
+// 🔄 ACTUALIZAR CÓDIGOS DE PIEZA SI CAMBIA EL CÓDIGO DE LOTE
+// ==========================================================
+document.addEventListener("input", (e) => {
+    if (e.target.classList.contains("codigoLote")) {
+        const idProd = e.target.dataset.idproducto;
+        const nuevoLote = e.target.value.trim();
+        const filas = document.querySelectorAll(`#tablaPiezas_${idProd} tbody tr`);
+        const prod = data.detalle.find(p => p.idProductos == idProd);
+        const codigoProd = prod.Codigo ?? `PRD${prod.idProductos}`;
+
+        filas.forEach((f, i) => {
+            const inputCodigo = f.querySelector('[name="codigoPieza"]');
+            inputCodigo.value = `${codigoProd}-${nuevoLote}-${String(i + 1).padStart(3, "0")}`;
+        });
+    }
+});
+
+
+// ==========================================================
+// 🔍 VALIDAR CÓDIGO DE LOTE (AJAX)
+// ==========================================================
+document.addEventListener("blur", async (e) => {
+    if (e.target.classList.contains("codigoLote")) {
+        const codigo = e.target.value.trim();
+        const idProd = e.target.dataset.idproducto;
+        const aviso = document.getElementById(`valida_${idProd}`);
+
+        if (!codigo) return;
+
+        const res = await fetch(`../Controladores/ControladorInventario.php?accion=verificarCodigoLote&idProducto=${idProd}&codigo=${encodeURIComponent(codigo)}`);
+        const data = await res.json();
+
+        if (data.existe) {
+            aviso.textContent = "⚠️ Ya existe un lote con ese código para este producto.";
+            aviso.style.color = "red";
+        } else {
+            aviso.textContent = "✅ Código disponible.";
+            aviso.style.color = "green";
+        }
+    }
+}, true);
+
+// ==========================================================
+// 🧮 ACTUALIZAR TOTALES
+// ==========================================================
+document.addEventListener("input", (e) => {
+    if (e.target.name === "metrosInicial" || e.target.name === "librasInicial") {
+        const idProd = e.target.closest(".form-lote").dataset.id;
+        actualizarTotales(idProd);
+    }
+});
+
+function actualizarTotales(idProd) {
+    const filas = document.querySelectorAll(`#tablaPiezas_${idProd} tbody tr`);
+    let totalM = 0, totalLb = 0;
+    filas.forEach(f => {
+        totalM += parseFloat(f.querySelector('[name="metrosInicial"]').value) || 0;
+        totalLb += parseFloat(f.querySelector('[name="librasInicial"]').value) || 0;
+    });
+    document.getElementById(`totalMetros_${idProd}`).textContent = totalM.toFixed(2);
+    document.getElementById(`totalLibras_${idProd}`).textContent = totalLb.toFixed(2);
+}
+
+// ==========================================================
+// ✅ VERIFICAR TOTALES CON TOLERANCIA
+// ==========================================================
+function verificarTotalesLote(idProd) {
+    const form = document.querySelector(`.form-lote[data-id="${idProd}"]`);
+    const totalM = parseFloat(document.getElementById(`totalMetros_${idProd}`).textContent);
+    const totalLb = parseFloat(document.getElementById(`totalLibras_${idProd}`).textContent);
+    const metrosLote = parseFloat(form.querySelector('[name="cantidadTotal"]').value);
+    const librasLote = parseFloat(form.querySelector('[name="pesoTotal"]').value);
+    const piezas = parseInt(form.querySelector('[name="totalPiezas"]').value);
+    const aviso = form.querySelector(".aviso-lote");
+
+    const tolerancia = piezas * 0.01;
+    const coincideM = Math.abs(totalM - metrosLote) < 0.0001;
+    const coincideLb = Math.abs(totalLb - librasLote) <= tolerancia;
+
+    if (coincideM && coincideLb) {
+        aviso.textContent = `✅ Totales correctos (${totalM.toFixed(2)} m / ${totalLb.toFixed(2)} lb)`;
+        aviso.style.color = "green";
+        return true;
+    } else {
+        aviso.textContent = `⚠️ Diferencias detectadas: ${totalM.toFixed(2)} m vs ${metrosLote.toFixed(2)} m, ${totalLb.toFixed(2)} lb vs ${librasLote.toFixed(2)} lb (±${tolerancia.toFixed(2)})`;
+        aviso.style.color = "red";
+        return false;
+    }
+}
+
+// ==========================================================
+// 💾 GUARDAR INVENTARIO
+// ==========================================================
+document.getElementById("btnGuardarInventario")?.addEventListener("click", async () => {
+    const lotes = [];
+    const piezas = {};
+    let valido = true;
+
+    document.querySelectorAll(".form-lote").forEach(form => {
+        const idProd = form.dataset.id;
+        if (!verificarTotalesLote(idProd)) valido = false;
+
+        lotes.push({
+            Id_Productos: parseInt(idProd),
+            Codigo: form.querySelector('[name="codigoLote"]').value,
+            Fecha_Ingreso: form.querySelector('[name="fechaIngreso"]').value,
+            Peso_Total_Libras: parseFloat(form.querySelector('[name="pesoTotal"]').value),
+            Cantidad_Total_Metros: parseFloat(form.querySelector('[name="cantidadTotal"]').value),
+            Relacion_Cantidad_Peso: parseFloat(form.querySelector('[name="relacion"]').value),
+            Total_Piezas: parseInt(form.querySelector('[name="totalPiezas"]').value)
+        });
+
+        piezas[idProd] = [];
+        form.querySelectorAll("tbody tr").forEach(f => {
+            piezas[idProd].push({
+                Codigo: f.querySelector('[name="codigoPieza"]').value,
+                Cantidad_Metros_Inicial: parseFloat(f.querySelector('[name="metrosInicial"]').value),
+                Peso_Libras_Inicial: parseFloat(f.querySelector('[name="librasInicial"]').value),
+                Cantidad_Metros_Actual: parseFloat(f.querySelector('[name="metrosInicial"]').value),
+                Peso_Libras_Actual: parseFloat(f.querySelector('[name="librasInicial"]').value),
+                Cantidad_Metros_Recortados: 0,
+                Peso_Libras_Recortados: 0
+            });
+        });
+    });
+
+    if (!valido) {
+        alert("⚠️ Corrige los totales de los lotes antes de guardar.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("idCompra", currentCompraId);
+    formData.append("lotes", JSON.stringify(lotes));
+    formData.append("piezas", JSON.stringify(piezas));
+
+    const res = await fetch("../Controladores/ControladorInventario.php", {
+        method: "POST",
+        body: formData
+    });
+
+    const result = await res.json();
+    alert(result.message);
+});

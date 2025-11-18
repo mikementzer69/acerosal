@@ -1,0 +1,7 @@
+form fieldset {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 10px 0;
+  display: inline-block;   /* Para que no se estire al 100% */
+  width: max-content;      /* Ajusta el ancho al contenido */
+}

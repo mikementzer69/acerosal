@@ -1,0 +1,252 @@
+/* ============================
+   SIDEBAR BASE
+============================ */
+
+.sidebar {
+    width: 250px !important;
+    background: #0F172A !important; /* Azul oscuro elegante */
+    color: #E2E8F0 !important;
+    height: calc(100vh - 110px) !important;
+    position: fixed !important;
+    top: 110px !important; /* debajo del header */
+    left: 0 !important;
+    overflow-y: auto !important;
+    padding-top: 10px !important;
+    box-shadow: 3px 0 8px rgba(0,0,0,0.4);
+    z-index: 99999 !important;
+}
+
+/* Título del sidebar */
+.sidebar-header {
+    padding: 12px 20px;
+    color: #AAB4C5;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ============================
+   SECCIONES PRINCIPALES
+============================ */
+
+.sidebar-section {
+    margin-bottom: 10px;
+}
+
+/* Botón principal de sección (Formularios, Listas, Gestión) */
+.sidebar-item {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 14px 20px;
+    text-align: left;
+    color: #F1F5F9;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: 0.2s ease;
+}
+
+.sidebar-item i {
+    font-style: normal;
+}
+
+.sidebar-item:hover {
+    background: #1E293B;
+    color: #fff;
+}
+
+/* ============================
+   SUBMENÚ (desplegable)
+============================ */
+
+.sidebar-submenu {
+    list-style: none;
+    padding: 5px 0 10px 0;
+    margin: 0;
+    display: none; /* se abre con JS */
+}
+
+/* Cuando está abierto */
+.sidebar-submenu.open {
+    display: block;
+}
+
+/* Ítems del submenú */
+.sidebar-submenu li {
+    margin: 3px 0;
+}
+
+/* Estilo de enlaces */
+.sidebar-submenu li a {
+    display: block;
+    padding: 10px 20px;
+    padding-left: 30px;  /* identación */
+    font-size: 15px;
+    color: #C7D2E5;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+
+/* Hover elegante */
+.sidebar-submenu li a:hover {
+    background: #1E2B3A;
+    color: #fff;
+    transform: translateX(3px); /* animación hacia la derecha */
+}
+
+/* Activo (opcional) */
+.sidebar-submenu li a.active {
+    background: #263445;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* ============================
+   QUITAR BULLETS Y ESTILOS RAROS
+============================ */
+
+.sidebar, .sidebar * {
+    list-style: none !important;
+    text-decoration: none !important;
+    outline: none !important;
+}
+
+/* ============================
+   EMPUJAR CONTENIDO DEL ERP
+============================ */
+
+.content {
+    margin-left: 250px !important;
+}
+
+/* ============================
+   SCROLLBAR ESTÉTICO
+============================ */
+
+.sidebar::-webkit-scrollbar {
+    width: 7px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: #0F172A;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #263447;
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #3A4B61;
+}
+/* -------- BOTÓN DE COLAPSAR -------- */
+.sidebar-toggle {
+    position: fixed;
+    top: 115px;
+    left: 260px;
+    padding: 10px;
+    background: #1E293B;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    z-index: 100000;
+    transition: 0.3s;
+}
+.sidebar-toggle:hover {
+    background: #334155;
+}
+
+/* -------- ANIMAR SUBMENÚ -------- */
+.sidebar-submenu {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.25s ease-out;
+}
+.sidebar-submenu.open {
+    max-height: 500px;
+    transition: max-height 0.3s ease-in;
+}
+
+/* -------- GIRAR FLECHA -------- */
+.arrow {
+    margin-left: auto;
+    transition: transform 0.25s;
+}
+.arrow.rotate {
+    transform: rotate(180deg);
+}
+
+/* -------- SIDEBAR COLAPSADO -------- */
+.sidebar.collapsed {
+    width: 70px !important;
+}
+.sidebar.collapsed .item-text {
+    display: none;
+}
+.sidebar.collapsed .sidebar-submenu {
+    display: none !important;
+}
+.sidebar.collapsed + .sidebar-toggle {
+    left: 80px;
+}
+
+/* -------- CONTENIDO AL COLAPSAR -------- */
+.content-collapsed {
+    margin-left: 80px !important;
+}
+/* -------- OPCIONES BONITAS DEL SUBMENÚ -------- */
+
+.sidebar-submenu li {
+    margin: 6px 10px;  /* Separación entre opciones */
+}
+
+.sidebar-submenu li a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #162233; /* Fondo tipo card */
+    padding: 12px 18px;
+    color: #d4deed;
+    font-size: 15px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    border: 1px solid transparent;
+}
+
+/* ICONO AUTOMÁTICO */
+.sidebar-submenu li a::before {
+    content: "\f105"; /* flechita FontAwesome */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: #7787a3;
+    transition: 0.25s;
+}
+
+/* HOVER moderno */
+.sidebar-submenu li a:hover {
+    background: #1f3047;
+    transform: translateX(5px);
+    color: white;
+    border-color: #2d4a74;
+}
+
+/* Hover para el ícono */
+.sidebar-submenu li a:hover::before {
+    color: white;
+}
+
+/* OPCIÓN ACTIVA (cuando está seleccionada) */
+.sidebar-submenu li a.active {
+    background: #25384f;
+    color: #fff;
+    font-weight: 600;
+    border-color: #2d4a74;
+}

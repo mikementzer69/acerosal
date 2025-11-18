@@ -1,0 +1,136 @@
+// ==========================================================
+// 📦 INVENTARIO MANUAL - CONTROL DE LOTES Y PIEZAS
+// ==========================================================
+document.addEventListener("DOMContentLoaded", async () => {
+    const selFamilia = document.getElementById("selectFamilia");
+    const selProducto = document.getElementById("selectProducto");
+    const codigoProducto = document.getElementById("codigoProducto");
+    const totalPiezas = document.getElementById("totalPiezas");
+    const pesoTotal = document.getElementById("pesoTotal");
+    const cantidadTotal = document.getElementById("cantidadTotal");
+    const relacion = document.getElementById("relacion");
+    const tbody = document.querySelector("#tablaPiezas tbody");
+    const totalMetros = document.getElementById("totalMetros");
+    const totalLibras = document.getElementById("totalLibras");
+
+    const codigosProductos = [];
+
+    // ------------------------------------------------------
+    // 1️⃣ CARGAR FAMILIAS
+    // ------------------------------------------------------
+    const respFam = await fetch("https://joexml.infinityfreeapp.com/Controladores/ControladorInventarioManual.php?accion=obtenerFamilias");
+    const familias = await respFam.json();
+    familias.forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = f.idFamilia;
+        opt.textContent = f.Nombre;
+        selFamilia.appendChild(opt);
+    });
+
+    // ------------------------------------------------------
+    // 2️⃣ CARGAR PRODUCTOS SEGÚN FAMILIA
+    // ------------------------------------------------------
+    selFamilia.addEventListener("change", async (e) => {
+        const idFam = e.target.value;
+        selProducto.innerHTML = `<option value="">Seleccione un producto</option>`;
+        selProducto.disabled = !idFam;
+        codigosProductos.length = 0; // limpiar
+
+        if (!idFam) return;
+
+        const resp = await fetch(`https://joexml.infinityfreeapp.com/Controladores/ControladorInventarioManual.php?accion=obtenerProductosPorFamilia&id=${idFam}`);
+        const productos = await resp.json();
+
+        productos.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.idProductos;
+            opt.textContent = `${p.Codigo} - ${p.Descripcion}`;
+            opt.dataset.codigo = p.Codigo;
+            selProducto.appendChild(opt);
+
+            codigosProductos.push({ id: p.idProductos, codigo: p.Codigo });
+        });
+    });
+
+    // ------------------------------------------------------
+    // 3️⃣ MOSTRAR CÓDIGO DE PRODUCTO AL SELECCIONAR
+    // ------------------------------------------------------
+    selProducto.addEventListener("change", () => {
+        const idProd = parseInt(selProducto.value);
+        const prod = codigosProductos.find(p => p.id === idProd);
+        codigoProducto.value = prod ? prod.codigo : "";
+    });
+
+    // ------------------------------------------------------
+    // 4️⃣ CALCULAR RELACIÓN lb/m
+    // ------------------------------------------------------
+    function calcularRelacion() {
+        const peso = parseFloat(pesoTotal.value) || 0;
+        const metros = parseFloat(cantidadTotal.value) || 0;
+        relacion.value = (peso && metros) ? (peso / metros).toFixed(4) : "";
+    }
+
+    pesoTotal.addEventListener("input", calcularRelacion);
+    cantidadTotal.addEventListener("input", calcularRelacion);
+
+    // ------------------------------------------------------
+    // 5️⃣ AGREGAR PIEZA
+    // ------------------------------------------------------
+    document.getElementById("btnAgregarPieza").addEventListener("click", () => {
+        const idProd = parseInt(selProducto.value);
+        const prod = codigosProductos.find(p => p.id === idProd);
+        const codigoLote = document.getElementById("codigoLote").value.trim();
+
+        if (!prod || !codigoLote) {
+            alert("Seleccione un producto y defina un código de lote antes de agregar piezas.");
+            return;
+        }
+
+        const correlativo = tbody.rows.length + 1;
+        const codigoPieza = `${prod.codigo}-${codigoLote}-${String(correlativo).padStart(3, "0")}`;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${codigoPieza}</td>
+            <td><input type="number" step="0.01" class="metros" value="0"></td>
+            <td><input type="number" step="0.01" class="libras" value="0"></td>
+            <td><button type="button" class="btn-eliminar">❌</button></td>
+        `;
+        tbody.appendChild(tr);
+        actualizarTotales();
+    });
+
+    // ------------------------------------------------------
+    // 6️⃣ ELIMINAR PIEZA
+    // ------------------------------------------------------
+    tbody.addEventListener("click", (e) => {
+        if (e.target.classList.contains("btn-eliminar")) {
+            e.target.closest("tr").remove();
+            actualizarTotales();
+        }
+    });
+
+    // ------------------------------------------------------
+    // 7️⃣ ACTUALIZAR TOTALES
+    // ------------------------------------------------------
+    function actualizarTotales() {
+        const metros = [...document.querySelectorAll(".metros")].reduce((s, i) => s + (parseFloat(i.value) || 0), 0);
+        const libras = [...document.querySelectorAll(".libras")].reduce((s, i) => s + (parseFloat(i.value) || 0), 0);
+        totalMetros.textContent = metros.toFixed(2);
+        totalLibras.textContent = libras.toFixed(2);
+        totalPiezas.value = tbody.rows.length;
+    }
+
+    tbody.addEventListener("input", (e) => {
+        if (e.target.classList.contains("metros") || e.target.classList.contains("libras")) {
+            actualizarTotales();
+        }
+    });
+
+    // ------------------------------------------------------
+    // 8️⃣ GUARDAR (placeholder)
+    // ------------------------------------------------------
+    document.getElementById("btnGuardar").addEventListener("click", () => {
+        alert("🧾 Guardar lote (implementación pendiente)");
+    });
+});

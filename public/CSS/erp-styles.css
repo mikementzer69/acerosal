@@ -1,0 +1,421 @@
+/* ----- CONTENEDOR PRINCIPAL ----- */
+.form-container {
+    background: #1e293b;
+    width: 600px;                 /* ancho más equilibrado */
+    padding: 25px 35px;
+    border-radius: 12px;
+    border: 1px solid #2f3c4f;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+
+    margin-left: 260px;           /* alineado con dashboard */
+    margin-top: 35px;             /* subir el formulario */
+
+    max-width: 600px;
+}
+
+/* ----- TÍTULO ----- */
+.form-title {
+    color: #e2e8f0;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ----- GRUPOS (LABEL + INPUT) ----- */
+.form-group {
+    margin-bottom: 12px;          /* separación más pequeña */
+}
+
+.form-group label {
+    display: block;
+    color: #cbd5e1;
+    font-size: 14px;
+    margin-bottom: 4px;           /* etiqueta pegada al input */
+}
+
+/* ----- INPUTS ----- */
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 8px 12px;            /* menos alto para compactar */
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-size: 15px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #3b82f6;
+    outline: none;
+}
+
+/* ----- BOTONES ----- */
+.form-actions {
+    margin-top: 18px;
+    display: flex;
+    gap: 12px;
+}
+
+.btn-primary {
+    background: #2563eb;
+    padding: 10px 18px;
+    border-radius: 8px;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    background: #475569;
+    padding: 10px 18px;
+    border-radius: 8px;
+    color: white;
+    text-decoration: none;
+}
+/* FILA DE 2 COLUMNAS */
+.form-row {
+    display: flex;
+    gap: 25px;
+    width: 100%;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+/* Ajuste para que los inputs no se estiren raro */
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+}
+/* --- CONTENEDORES --- */
+.erp-section {
+    margin-left: 0;
+    background: transparent;
+    padding: 20px 10px;
+}
+
+.erp-title {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #0b1b33 !important; /* azul marino oscuro */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* --- BUSCADOR --- */
+.erp-search-form {
+    margin-bottom: 20px;
+}
+
+.search-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.search-input {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+}
+
+/* --- BOTONES --- */
+.btn-primary {
+    background: #3b82f6;
+    padding: 10px 16px;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-secondary {
+    background: #475569;
+    padding: 10px 16px;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #64748b;
+}
+
+/* --- TABLA --- */
+.erp-table-container {
+    background: #0f172a;
+    border-radius: 12px;
+    padding: 15px;
+    overflow-x: auto;
+}
+
+.erp-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #e2e8f0;
+}
+
+.erp-table th {
+    background: #1e293b;
+    padding: 12px;
+    text-align: left;
+    border-bottom: 2px solid #334155;
+}
+
+.erp-table td {
+    padding: 10px;
+    border-bottom: 1px solid #334155;
+}
+
+.erp-table tr:hover {
+    background: #1e293b;
+}
+
+.no-results {
+    text-align: center;
+    padding: 20px;
+    color: #94a3b8;
+}
+
+/* --- TOTAL --- */
+.erp-total {
+    color: #94a3b8;
+    margin: 10px 0;
+}
+
+/* --- PAGINACIÓN --- */
+.erp-pagination {
+    margin-top: 15px;
+}
+/* Fix global para todas las páginas de contenido */
+.content {
+    margin-left: 260px !important;   /* espacio igual al sidebar */
+    padding: 20px 40px;
+}
+
+/* Asegurar que todo lo que se centre dentro siga funcionando */
+.erp-section {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+/* ========== TABLAS DEL ERP ========== */
+
+.table-dark {
+    width: 100%;
+    border-collapse: collapse;
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Header */
+.table-dark thead {
+    background: #1e293b;
+}
+
+.table-dark th {
+    padding: 12px;
+    font-size: 14px;
+    text-align: left;
+    color: #e5e7eb;
+}
+
+/* Filas impares */
+.table-dark tbody tr:nth-child(odd) {
+    background: #162337;
+}
+
+/* Filas pares */
+.table-dark tbody tr:nth-child(even) {
+    background: #1b2a41;
+}
+
+/* Celdas */
+.table-dark td {
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+/* Hover */
+.table-dark tbody tr:hover {
+    background: #24344d;
+}
+/* ===== FIX: tablas estilo oscuro ===== */
+.erp-table-container table.erp-table tbody tr:nth-child(even),
+.erp-table-container table.erp-table tbody tr:nth-child(odd) {
+    background: #1e293b !important;   /* Fondo oscuro uniforme */
+    color: #e2e8f0 !important;        /* Texto claro */
+}
+
+.erp-table-container table.erp-table tbody tr:hover {
+    background: #2a3a4f !important;   /* Hover oscuro */
+}
+.erp-table tbody tr:nth-child(odd) {
+    background: #1e293b;
+}
+
+.erp-table tbody tr:nth-child(even) {
+    background: #243247;
+}
+
+.erp-table tbody tr:hover {
+    background: #31425a;
+}
+
+/* ====== ACCIONES EN TABLAS ====== */
+.erp-actions-cell {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.btn-table {
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+
+.btn-edit {
+    background: #3b82f6;
+}
+.btn-edit:hover {
+    background: #2563eb;
+}
+
+.btn-delete {
+    background: #ef4444;
+}
+.btn-delete:hover {
+    background: #dc2626;
+}
+.erp-actions-cell {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.btn-table {
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-edit { background: #3b82f6; }
+.btn-edit:hover { background: #2563eb; }
+
+.btn-delete { background: #ef4444; }
+.btn-delete:hover { background: #dc2626; }
+
+.content {
+    margin-left: 250px !important;
+    padding-top: 40px !important;  /* 👈 BAJA TODO EL CONTENIDO */
+}
+.dash-subtitle {
+    position: relative;
+    top: -20px;    /* Súbelo sin afectar nada más */
+}
+
+/* Caja */
+.filter-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+
+/* GRID: 6 columnas compactas */
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px 15px;
+    align-items: end;
+}
+
+/* Campos compactos */
+.filter-item label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    color: #334155;
+}
+
+.filter-item input {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    height: 32px;
+}
+
+/* BOTONES */
+/* Inputs delgados como el botón Buscar */
+.filter-input {
+    height: 32px !important;
+    padding: 4px 8px;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+/* Botones delgados */
+/* Botones delgados y alineados */
+.filter-btn {
+    height: 32px !important;
+    padding: 4px 14px !important;
+    font-size: 14px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    margin-top: 0 !important;   /* Alineación perfecta */
+}
+.filter-btn i {
+    margin-right: 6px;
+}
+
+
+/* Botones iguales y alineados */
+.small-btn {
+    height: 36px !important;     /* misma altura que inputs */
+    padding: 6px 18px !important;
+    font-size: 13px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+body {
+    background-color: #e1e4e8 !important;
+}
