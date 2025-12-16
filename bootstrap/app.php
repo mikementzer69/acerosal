@@ -11,11 +11,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+
+        // Alias de middlewares
         $middleware->alias([
             'auth.custom' => \App\Http\Middleware\AuthCustom::class,
+            'bloquear.mes' => \App\Http\Middleware\BloquearMesCerrado::class, // ⬅️ NUEVO
         ]);
     })
-
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
