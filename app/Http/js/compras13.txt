@@ -1,0 +1,427 @@
+
+    // =============================================================
+    // 🔹 VARIABLES GLOBALES
+    // =============================================================
+    const contenedorFamilias = document.getElementById("contenedor-familias");
+    const selectFamilia = document.getElementById("familiaSelect");
+    const btnAgregarFamilia = document.getElementById("btnAgregarFamilia");
+    const tablaResumen = document.querySelector("#tabla-resumen tbody");
+
+    // Totales globales
+    const inputTotalCostos = document.getElementById("totalCostosAdicionales");
+    const tasaCambioInput = document.getElementById("tasaCambio");
+    const costosPorLibraInput = document.getElementById("costosPorLibra");
+    const totalKGInput = document.getElementById("totalKG");
+    const totalLBInput = document.getElementById("totalLB");
+    const importeTotalFactura = document.getElementById("importeTotalFactura");
+    const totalFactura = document.getElementById("totalFactura");
+
+// =============================================================
+// 💲 MANEJO DE COSTOS ADICIONALES - SIN DEPENDER DE SELECT BASE
+// =============================================================
+document.addEventListener("DOMContentLoaded", async () => {
+    const tablaCostos = document.getElementById("tabla-costos");
+    const btnAgregarCosto = document.getElementById("btnAgregarCosto");
+
+    // ------------------------------------------------------------
+    // 1️⃣ CARGAR COSTOS ACTIVOS DESDE EL BACKEND
+    // ------------------------------------------------------------
+    let costosActivos = [];
+
+    try {
+        const resp = await fetch("/Controladores/ControladorCompras.php?accion=costosActivos");
+        costosActivos = await resp.json();
+    } catch (error) {
+        console.error("Error al cargar costos activos:", error);
+    }
+
+    // ------------------------------------------------------------
+    // 2️⃣ FUNCIÓN PARA CONSTRUIR LAS OPCIONES DEL SELECT
+    // ------------------------------------------------------------
+    function generarOpcionesCostos() {
+        if (!costosActivos.length) return '<option value="">-- No hay costos activos --</option>';
+        return '<option value="">-- Seleccione --</option>' +
+            costosActivos.map(c => `<option value="${c.idCostos}">${c.Nombre}</option>`).join('');
+    }
+
+    // ------------------------------------------------------------
+    // 3️⃣ AGREGAR NUEVA FILA DE COSTO
+    // ------------------------------------------------------------
+    btnAgregarCosto?.addEventListener("click", () => {
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+            <td>
+                <select name="id_Costos[]" class="select-costo">
+                    ${generarOpcionesCostos()}
+                </select>
+            </td>
+            <td><input type="number" name="Valor_USD[]" class="valor-usd" step="0.01" min="0"></td>
+            <td><input type="number" name="Valor_EU[]" class="valor-eu" step="0.01" min="0"></td>
+            <td><button type="button" class="btnEliminarFila btnRojo">X</button></td>
+        `;
+        tablaCostos.appendChild(fila);
+
+        // Eventos dinámicos
+        fila.querySelectorAll("input").forEach(i => i.addEventListener("input", actualizarTotalCostos));
+        fila.querySelector(".btnEliminarFila").addEventListener("click", () => {
+            if (confirm("¿Eliminar este costo adicional?")) {
+                fila.remove();
+                actualizarTotalCostos();
+            }
+        });
+    });
+
+    // ------------------------------------------------------------
+    // 4️⃣ CALCULAR TOTAL DE COSTOS ADICIONALES (USD)
+    // ------------------------------------------------------------
+    function actualizarTotalCostos() {
+        let total = 0;
+        document.querySelectorAll(".valor-usd").forEach(input => {
+            total += parseFloat(input.value) || 0;
+        });
+        if (inputTotalCostos) inputTotalCostos.value = total.toFixed(2);
+
+        if (typeof actualizarTotalesFactura === "function") {
+            actualizarTotalesFactura();
+        }
+    }
+});
+
+
+    // =============================================================
+    // 🟢 AGREGAR FAMILIA
+    // =============================================================
+    btnAgregarFamilia?.addEventListener("click", async () => {
+        const idFamilia = selectFamilia.value;
+        const nombreFamilia = selectFamilia.options[selectFamilia.selectedIndex]?.text;
+
+        if (!idFamilia) return alert("Seleccione una familia primero.");
+        if (document.getElementById(`familia-${idFamilia}`))
+            return alert("Esa familia ya fue agregada.");
+
+        // deshabilitar opción para evitar duplicados
+        selectFamilia.options[selectFamilia.selectedIndex].disabled = true;
+
+        const divFamilia = document.createElement("div");
+        divFamilia.className = "bloque-familia";
+        divFamilia.id = `familia-${idFamilia}`;
+        divFamilia.innerHTML = `
+            <fieldset>
+                <legend><strong>${nombreFamilia}</strong>
+                    <button type="button" class="btnEliminarFamilia btnRojo" data-id="${idFamilia}">X</button>
+                </legend>
+                <table class="tabla-detalle">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Precio KG (€)</th>
+                            <th>Precio KG ($)</th>
+                            <th>Cantidad (Metros)</th>
+                            <th>Peso (KG)</th>
+                            <th>Peso (LB)</th>
+                            <th>Importe (€)</th>
+                            <th>Importe ($)</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <button type="button" class="btnAgregarProducto" data-id="${idFamilia}">Agregar Producto</button>
+                <div class="totales-familia">
+                    <label>Total Cantidad (m):</label> <input readonly id="totalCant-${idFamilia}" value="0.00">
+                    <label>Total Peso (KG):</label> <input readonly id="totalKG-${idFamilia}" value="0.00">
+                    <label>Total Peso (LB):</label> <input readonly id="totalLB-${idFamilia}" value="0.00">
+                    <label>Total (€):</label> <input readonly id="totalEU-${idFamilia}" value="0.00">
+                    <label>Total ($):</label> <input readonly id="totalUSD-${idFamilia}" value="0.00">
+                </div>
+            </fieldset>
+        `;
+
+        contenedorFamilias.appendChild(divFamilia);
+        agregarFilaResumen(nombreFamilia, idFamilia);
+    });
+
+    // =============================================================
+    // 🔴 ELIMINAR FAMILIA
+    // =============================================================
+    contenedorFamilias.addEventListener("click", (e) => {
+        if (e.target.classList.contains("btnEliminarFamilia")) {
+            const id = e.target.dataset.id;
+            const nombre = selectFamilia.querySelector(`option[value="${id}"]`)?.text;
+            if (confirm(`¿Eliminar la familia "${nombre}" y todos sus productos?`)) {
+                document.getElementById(`familia-${id}`)?.remove();
+                eliminarFilaResumen(id);
+                selectFamilia.querySelector(`option[value="${id}"]`).disabled = false;
+                actualizarTotalesFactura();
+            }
+        }
+    });
+
+    // =============================================================
+    // 🟡 AGREGAR PRODUCTO
+    // =============================================================
+    contenedorFamilias.addEventListener("click", async (e) => {
+        if (!e.target.classList.contains("btnAgregarProducto")) return;
+
+        const idFamilia = e.target.dataset.id;
+        const tbody = document.querySelector(`#familia-${idFamilia} tbody`);
+        const productos = await fetch(`Controladores/ControladorCompras.php?accion=productosFamilia&idFamilia=${idFamilia}`).then(r => r.json());
+
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+            <td>
+                <select name="id_Producto[]" class="producto">
+                    <option value="">--Seleccione--</option>
+                    ${productos.map(p => `<option value="${p.idProductos}">${p.Descripcion}</option>`).join("")}
+                </select>
+            </td>
+    		<td><input type="number" name="Precio_KG_EU[]" class="precioEU" step="0.01" min="0"></td>
+    		<td><input type="number" name="Precio_KG_USD[]" class="precioUSD" step="0.01" min="0" readonly></td>
+    		<td><input type="number" name="Cantidad[]" class="cantidad" step="0.01" min="0"></td>
+    		<td><input type="number" name="Peso_KG[]" class="pesoKG" step="0.01" min="0"></td>
+    		<td><input type="number" name="Peso_Libra[]" class="pesoLB" step="0.01" min="0" readonly></td>
+    		<td><input type="number" name="Importe_EU[]" class="importeEU" step="0.01" readonly></td>
+    		<td><input type="number" name="Importe_Dolares[]" class="importeUSD" step="0.01" readonly></td>
+    		<td><button type="button" class="btnEliminarFila btnRojo">X</button></td>
+        `;
+
+        tbody.appendChild(fila);
+
+        fila.querySelectorAll("input").forEach(inp =>
+            inp.addEventListener("input", () => recalcularFila(fila, idFamilia))
+        );
+
+        fila.querySelector(".btnEliminarFila").addEventListener("click", () => {
+            if (confirm("¿Eliminar este producto?")) {
+                fila.remove();
+                recalcularTotalesFamilia(idFamilia);
+            }
+        });
+    });
+
+    // =============================================================
+    // 🔢 FUNCIONES DE CÁLCULO
+    // =============================================================
+    function recalcularFila(fila, idFamilia) {
+        const tasa = parseFloat(tasaCambioInput.value) || 1;
+        const precioEU = parseFloat(fila.querySelector(".precioEU").value) || 0;
+        const cantidad = parseFloat(fila.querySelector(".cantidad").value) || 0;
+        const pesoKG = parseFloat(fila.querySelector(".pesoKG").value) || 0;
+        const pesoLB = pesoKG * 2.20462;
+        const importeEU = precioEU * pesoKG;
+        const importeUSD = importeEU * tasa;
+        const precioUSD = precioEU * tasa;
+
+        fila.querySelector(".pesoLB").value = pesoLB.toFixed(2);
+        fila.querySelector(".importeEU").value = importeEU.toFixed(2);
+        fila.querySelector(".importeUSD").value = importeUSD.toFixed(2);
+        fila.querySelector(".precioUSD").value = precioUSD.toFixed(2);
+
+        recalcularTotalesFamilia(idFamilia);
+    }
+
+    function recalcularTotalesFamilia(idFamilia) {
+        const filas = document.querySelectorAll(`#familia-${idFamilia} tbody tr`);
+        let totalCant = 0, totalKG = 0, totalLB = 0, totalEU = 0, totalUSD = 0;
+
+        filas.forEach(f => {
+            totalCant += parseFloat(f.querySelector(".cantidad").value) || 0;
+            totalKG += parseFloat(f.querySelector(".pesoKG").value) || 0;
+            totalLB += parseFloat(f.querySelector(".pesoLB").value) || 0;
+            totalEU += parseFloat(f.querySelector(".importeEU").value) || 0;
+            totalUSD += parseFloat(f.querySelector(".importeUSD").value) || 0;
+        });
+
+        document.getElementById(`totalCant-${idFamilia}`).value = totalCant.toFixed(2);
+        document.getElementById(`totalKG-${idFamilia}`).value = totalKG.toFixed(2);
+        document.getElementById(`totalLB-${idFamilia}`).value = totalLB.toFixed(2);
+        document.getElementById(`totalEU-${idFamilia}`).value = totalEU.toFixed(2);
+        document.getElementById(`totalUSD-${idFamilia}`).value = totalUSD.toFixed(2);
+
+        actualizarResumen();
+        actualizarTotalesFactura();
+    }
+
+    // =============================================================
+    // 📊 RESUMEN DE FAMILIAS
+    // =============================================================
+    function agregarFilaResumen(nombreFamilia, idFamilia) {
+        if (document.querySelector(`#filaResumen-${idFamilia}`)) return;
+
+        const fila = document.createElement("tr");
+        fila.id = `filaResumen-${idFamilia}`;
+        fila.dataset.idFamilia = idFamilia;
+		fila.innerHTML = `
+    		<td>
+        		<input type="hidden" name="id_Familias[]" value="${idFamilia}">
+        		${nombreFamilia}
+    		</td>
+    		<td><input name="Cantidad_Total[]" class="cantTotal" readonly value="0.00"></td>
+    		<td><input name="Peso_Total_KG[]" class="pesoKG" readonly value="0.00"></td>
+    		<td><input name="Peso_Total_Libras[]" class="pesoLB" readonly value="0.00"></td>
+    		<td><input name="Importe_Total_EU[]" class="impEU" readonly value="0.00"></td>
+    		<td><input name="Importe_Total_Dolares[]" class="impUSD" readonly value="0.00"></td>
+    		<td><input name="Precio_CIF[]" class="precioCIF" readonly value="0.00"></td>
+    		<td><input name="Precio_Unitario_Bodega[]" class="precioBodega" readonly value="0.00"></td>
+    		<td><input name="Total_Familia[]" class="totalFamilia" readonly value="0.00"></td>
+`;
+        tablaResumen.appendChild(fila);
+    }
+
+    function eliminarFilaResumen(idFamilia) {
+        document.querySelector(`#filaResumen-${idFamilia}`)?.remove();
+        actualizarTotalesFactura();
+    }
+
+    function actualizarResumen() {
+        const tasa = parseFloat(tasaCambioInput.value) || 1;
+        const costoAdicUSD = parseFloat(inputTotalCostos.value) || 0;
+        const totalLBGlobal = parseFloat(totalLBInput.value) || 0;
+        const costoAdicPorLibra = totalLBGlobal > 0 ? costoAdicUSD / totalLBGlobal : 0;
+        costosPorLibraInput.value = costoAdicPorLibra.toFixed(4);
+
+        document.querySelectorAll(".bloque-familia").forEach(div => {
+            const id = div.id.split("-")[1];
+            const filaResumen = document.querySelector(`#filaResumen-${id}`);
+            if (!filaResumen) return;
+
+            const pesoLB = parseFloat(div.querySelector(`#totalLB-${id}`).value) || 0;
+            const impUSD = parseFloat(div.querySelector(`#totalUSD-${id}`).value) || 0;
+            const precioCIF = pesoLB > 0 ? impUSD / pesoLB : 0;
+            const precioBodega = precioCIF + costoAdicPorLibra;
+            const totalFamilia = precioBodega * pesoLB;
+
+            filaResumen.querySelector(".cantTotal").value = div.querySelector(`#totalCant-${id}`).value;
+            filaResumen.querySelector(".pesoKG").value = div.querySelector(`#totalKG-${id}`).value;
+            filaResumen.querySelector(".pesoLB").value = pesoLB.toFixed(2);
+            filaResumen.querySelector(".impEU").value = div.querySelector(`#totalEU-${id}`).value;
+            filaResumen.querySelector(".impUSD").value = impUSD.toFixed(2);
+            filaResumen.querySelector(".precioCIF").value = precioCIF.toFixed(2);
+            filaResumen.querySelector(".precioBodega").value = precioBodega.toFixed(2);
+            filaResumen.querySelector(".totalFamilia").value = totalFamilia.toFixed(2);
+        });
+    }
+
+    // =============================================================
+    // 🧮 TOTALES DE FACTURA
+    // =============================================================
+    function actualizarTotalesFactura() {
+        let totalKG = 0, totalLB = 0, totalUSD = 0;
+        document.querySelectorAll(".bloque-familia").forEach(div => {
+            const id = div.id.split("-")[1];
+            totalKG += parseFloat(div.querySelector(`#totalKG-${id}`).value) || 0;
+            totalLB += parseFloat(div.querySelector(`#totalLB-${id}`).value) || 0;
+            totalUSD += parseFloat(div.querySelector(`#totalUSD-${id}`).value) || 0;
+        });
+
+        totalKGInput.value = totalKG.toFixed(2);
+        totalLBInput.value = totalLB.toFixed(2);
+        importeTotalFactura.value = totalUSD.toFixed(2);
+
+        const costosUSD = parseFloat(inputTotalCostos.value) || 0;
+        const totalFinal = totalUSD + costosUSD;
+        totalFactura.value = totalFinal.toFixed(2);
+
+        actualizarResumen();
+    }
+
+    // =============================================================
+    // ⚙️ EVENTOS GLOBALES
+    // =============================================================
+    tasaCambioInput?.addEventListener("input", () => {
+        document.querySelectorAll(".bloque-familia").forEach(div => {
+            const id = div.id.split("-")[1];
+            recalcularTotalesFamilia(id);
+        });
+    });
+
+    inputTotalCostos?.addEventListener("input", actualizarTotalesFactura);
+
+
+// =============================================================
+// 💾 GUARDAR COMPRA COMPLETA (Backend via Fetch)
+// =============================================================
+const formCompra = document.getElementById("formCompra");
+
+formCompra?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    guardarCompra(formCompra);
+});
+
+function guardarCompra(form) {
+    if (!form) {
+        console.error("💥 No se encontró el formulario #formCompra");
+        return;
+    }
+
+    const datos = new FormData(form);
+    datos.append("accion", "guardarCompra");
+
+    console.log("➡️ Enviando datos al backend...");
+    //const datos = new FormData(document.getElementById("formCompra"));
+	//for (const [k, v] of datos.entries()) console.log(k, "→", v);
+
+    fetch("/Controladores/ControladorCompras.php", {
+        method: "POST",
+        body: datos,
+    })
+        .then((resp) => {
+            const tipo = resp.headers.get("content-type") || "";
+            if (!tipo.includes("application/json")) {
+                return resp.text().then((txt) => {
+                    console.warn("⚠️ Respuesta no JSON:\n", txt);
+                    throw new Error("Respuesta no JSON");
+                });
+            }
+            return resp.json();
+        })
+        .then((resultado) => {
+            console.log("📦 Respuesta backend:", resultado);
+            if (resultado.mensajes) {
+                resultado.mensajes.forEach((m) => console.log(m));
+            }
+
+            if (resultado.ok) {
+                console.log("✅ Compra guardada correctamente. ID:", resultado.idCompra);
+                alert("✅ Compra guardada correctamente");
+                location.reload();
+            } else {
+                console.error("❌ Error al guardar la compra.");
+                alert("❌ Error al guardar la compra. Ver consola.");
+            }
+        })
+        .catch((error) => {
+            console.error("💥 Error en fetch:", error);
+            alert("❌ Error de conexión con el servidor");
+        });
+}
+
+async function guardarCompra1() {
+  try {
+    const form = document.getElementById("formCompra");
+    const datos = new FormData(form);
+    datos.append("accion", "guardarCompra");
+
+    const resp = await fetch("/Controladores/ControladorCompras.php", {
+      method: "POST",
+      body: datos,
+      headers: { "Accept": "application/json" }
+    });
+
+    // 👇 Leemos la respuesta como texto sin intentar parsear
+    const raw = await resp.text();
+    console.log("📦 Respuesta RAW del servidor:\n", raw);
+
+    // Intentamos parsear JSON solo si parece válido
+    let data;
+    try {
+      data = JSON.parse(raw);
+      console.log("✅ JSON parseado correctamente:", data);
+    } catch {
+      throw new Error("❌ No se pudo parsear JSON");
+    }
+
+  } catch (error) {
+    console.error("💥 Error en fetch:", error);
+  }
+}
