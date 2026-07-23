@@ -1,0 +1,65 @@
+/* Contenedor del menú ERP */
+.erp-menu {
+    width: 100%;
+    background: #0F172A; /* Azul oscuro elegante */
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+}
+
+/* Lista principal */
+.erp-menu-list {
+    list-style: none;
+    display: flex;
+    gap: 30px;
+    margin: 0;
+    padding: 0;
+}
+
+/* Items */
+.erp-item > a {
+    color: #F1F5F9;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 5px 10px;
+    transition: 0.2s;
+}
+
+/* Hover */
+.erp-item > a:hover {
+    color: #38BDF8; /* celeste */
+}
+
+/* Submenú */
+.erp-submenu {
+    list-style: none;
+    padding: 10px 0;
+    background: #1E293B;
+    border-radius: 8px;
+    margin-top: 8px;
+    display: none;
+    position: absolute;
+    min-width: 220px;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Items del submenú */
+.erp-submenu li a {
+    display: block;
+    padding: 10px 16px;
+    text-decoration: none;
+    color: #E2E8F0;
+    transition: 0.2s;
+}
+
+/* Hover en submenu */
+.erp-submenu li a:hover {
+    background: #334155;
+    color: white;
+}
+
+/* Mostrar submenu al pasar el mouse */
+.erp-item:hover .erp-submenu {
+    display: block;
+}

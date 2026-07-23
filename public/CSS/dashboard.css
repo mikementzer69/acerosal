@@ -1,0 +1,142 @@
+.dashboard {
+    margin-left: 85px !important;
+    padding-top: 0px;
+    padding-right: 25px;
+    color: #e8eef7;
+}
+
+
+/* ====== Título Principal ====== */
+.dash-title {
+    margin-left: -55px !important;
+    margin-top: -35px !important;   /* SUBE EL TÍTULO */
+    color: #1e293b !important;      /* azul oscuro elegante (más visible) */
+    font-weight: 700 !important;
+}
+
+
+.dash-subtitle {
+    margin-left: -55px !important;
+    color: #475569 !important;  /* gris elegante */
+}
+
+
+
+
+/* ====== Cards container ====== */
+.dash-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+    margin-top: -35px !important;
+    margin-bottom: 35px;
+}
+
+/* ====== Card ====== */
+.dash-card {
+    background: #1e293b;
+    border-radius: 14px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    text-decoration: none;
+    color: #e8eef7;
+    transition: 0.25s;
+    border: 1px solid transparent;
+}
+
+.dash-card:hover {
+    background: #263447;
+    transform: translateY(-4px);
+    border-color: #3b4b63;
+}
+
+/* ====== Iconos ====== */
+.dash-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: white;
+}
+
+/* Icon colors */
+.bg-blue { background: #3b82f6; }
+.bg-green { background: #10b981; }
+.bg-purple { background: #8b5cf6; }
+.bg-yellow { background: #eab308; }
+
+/* ====== Accesos rápidos ====== */
+.dash-quick-access {
+    display: flex;
+    gap: 15px;
+    margin-left: -20px !important;  /* Alineado con todo el contenido */
+    margin-bottom: 35px;
+}
+
+.quick-btn {
+    background: #334155;
+    padding: 12px 20px;
+    border-radius: 10px;
+    color: #e8eef7;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.quick-btn:hover {
+    background: #475569;
+}
+
+/* ====== Subsection Titles ====== */
+.dash-subsection-title {
+    margin-left: -20px !important;
+    margin-bottom: 10px;
+    font-size: 22px;
+    font-weight: 600;
+    color: #1e293b !important;   /* azul oscuro elegante */
+}
+
+
+/* ====== Actividad reciente ====== */
+.dash-recent {
+    background: #1e293b;
+    padding: 18px;
+    border-radius: 12px;
+    margin-left: -20px !important;     /* Alineado con contenido */
+}
+
+.dash-recent ul {
+    list-style: none;
+    padding: 0;
+}
+
+.dash-recent li {
+    margin-bottom: 10px;
+    color: #cbd5e1;
+}
+
+.text-green { color: #22c55e; }
+.text-blue  { color: #3b82f6; }
+.text-purple{ color: #a855f7; }
+/* ==========================================
+   CONTENEDOR DEL DASHBOARD
+   ========================================== */
+.content-dashboard {
+    margin-left: 180px;    /* Ancho del sidebar */
+    margin-top: 20px;
+    padding-right: 20px;
+}
+
+/* ==========================================
+   CONTENEDOR PARA FORMULARIOS
+   ========================================== */
+.content-form {
+    margin-left: 180px !important;  
+    margin-right: 40px !important;
+    margin-top: 10px;
+    padding: 20px;
+}

@@ -1,0 +1,148 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="form-container">
+
+    <h2 class="form-title">
+        <i class="fa-solid fa-pen"></i> Editar Producto
+    </h2>
+
+    @if ($errors->any())
+        <div class="form-alert">
+            <ul>
+                @foreach ($errors->all() as $e)
+                    <li>{{ $e }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form method="POST" action="{{ route('producto.actualizar', $producto->id_producto) }}">
+        @csrf
+        @method('PUT')
+
+        {{-- FILA 1: FAMILIA, UBICACIÓN Y CÓDIGO (3 campos ahora) --}}
+        <div class="form-row">
+            <div class="form-group">
+                <label>Calidad *</label>
+                <select name="id_familia" required>
+                    @foreach($familias as $f)
+                        <option value="{{ $f->id_familia }}"
+                            {{ old('id_familia', $producto->id_familia) == $f->id_familia ? 'selected' : '' }}>
+                            {{ $f->nombre }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- ESTE ES EL CAMPO QUE AGREGAMOS --}}
+            <div class="form-group">
+                <label>Ubicación / Bodega</label>
+                <select name="id_ubicacion">
+                    <option value="">-- Seleccione Ubicación --</option>
+                    @foreach($ubicaciones as $u)
+                        <option value="{{ $u->id_ubicacion }}"
+                            {{ old('id_ubicacion', $producto->id_ubicacion) == $u->id_ubicacion ? 'selected' : '' }}>
+                            {{ $u->nombre }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Código *</label>
+                <input type="text" name="codigo" value="{{ old('codigo', $producto->codigo) }}" required>
+            </div>
+        </div>
+
+        {{-- FILA 2: DESCRIPCIÓN --}}
+        <div class="form-group">
+            <label>Descripción *</label>
+            <input type="text" name="descripcion" value="{{ old('descripcion', $producto->descripcion) }}" required>
+        </div>
+
+        {{-- FILA 3: UNIDADES + MILÍMETROS --}}
+        <div class="form-row">
+            <div class="form-group">
+                <label>Unidad Medida Longitud</label>
+                <input type="text" name="unidad_medida_longitud"
+                       value="{{ old('unidad_medida_longitud', $producto->unidad_medida_longitud) }}">
+            </div>
+
+            <div class="form-group">
+                <label>Unidad Medida Peso</label>
+                <input type="text" name="unidad_medida_peso"
+                       value="{{ old('unidad_medida_peso', $producto->unidad_medida_peso) }}">
+            </div>
+
+            <div class="form-group">
+                <label>Milímetros</label>
+                <input type="text" name="milimetros" value="{{ old('milimetros', $producto->milimetros) }}">
+            </div>
+        </div>
+
+        {{-- FILA 4: PULGADAS Y TOLERANCIA --}}
+        <div class="form-row">
+            <div class="form-group">
+                <label>Pulgadas</label>
+                <input type="text" name="pulgadas" value="{{ old('pulgadas', $producto->pulgadas) }}">
+            </div>
+
+            <div class="form-group">
+                <label>Pulgadas Decimal</label>
+                <input type="number" step="0.0001" name="pulgadas_decimal"
+                       value="{{ old('pulgadas_decimal', $producto->pulgadas_decimal) }}">
+            </div>
+
+            <div class="form-group">
+                <label>Tolerancia</label>
+                <input type="number" step="0.0001" name="tolerancia" value="{{ old('tolerancia', $producto->tolerancia) }}">
+            </div>
+        </div>
+
+        {{-- FILA 5: PESO, STOCK Y PRECIO --}}
+        <div class="form-row">
+            <div class="form-group">
+                <label>Peso LB/MTS</label>
+                <input type="number" step="0.0001" name="peso_lb_mts"
+                       value="{{ old('peso_lb_mts', $producto->peso_lb_mts) }}">
+            </div>
+
+            <div class="form-group">
+                <label>Stock Metros (Actual)</label>
+                <input type="number"
+                       value="{{ $producto->stock_metros }}"
+                       readonly
+                       style="background-color: #e9ecef; color: #333333; cursor: not-allowed; font-weight: bold;">
+            </div>
+
+            <div class="form-group">
+                <label>Precio Unitario Bodega</label>
+                <input type="number" step="0.0001" name="precio_unitario_bodega"
+                       value="{{ old('precio_unitario_bodega', $producto->precio_unitario_bodega) }}">
+            </div>
+        </div>
+
+        {{-- FILA 6: PRECIOS VENTA --}}
+        <div class="form-row">
+            <div class="form-group">
+                <label>Precio sin IVA</label>
+                <input type="number" step="0.01" name="precio_venta_sin_iva"
+                       value="{{ old('precio_venta_sin_iva', $producto->precio_venta_sin_iva) }}">
+            </div>
+
+            <div class="form-group" style="display:flex; align-items:center; gap:10px; padding-top: 25px;">
+                <input type="checkbox" id="precio_fijo" name="precio_fijo" value="1"
+                    {{ old('precio_fijo', $producto->precio_fijo) ? 'checked' : '' }}>
+                <label for="precio_fijo" style="margin-bottom: 0; cursor:pointer;">Precio Fijo</label>
+            </div>
+        </div>
+
+        <div class="form-actions mt-4">
+            <button class="btn-primary" type="submit">Actualizar</button>
+            <a class="btn-secondary" href="{{ route('producto.lista') }}">Cancelar</a>
+        </div>
+
+    </form>
+</div>
+@endsection

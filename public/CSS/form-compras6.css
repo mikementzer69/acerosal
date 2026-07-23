@@ -1,0 +1,351 @@
+
+/* ===========================================================
+   ESTRUCTURA GENERAL DE GRID
+=========================================================== */
+.grid-compras {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    grid-template-areas:
+        "mensaje mensaje"
+        "datos costos"
+        "detalle detalle"
+        "resumen resumen"
+        ". totales";
+    gap: 15px;
+    margin: 15px;
+}
+
+.mensaje		{ grid-area: mensaje; }
+.datos-compra   { grid-area: datos; }
+.costos-adicionales { grid-area: costos; }
+.detalle-compra { grid-area: detalle; }
+.resumen        { grid-area: resumen; }
+.totales-factura{ grid-area: totales; }
+
+fieldset {
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 10px 15px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    transition: all 0.2s ease-in-out;
+}
+
+fieldset:hover {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+}
+
+legend {
+    font-weight: bold;
+    color: #333;
+    padding: 0 8px;
+}
+
+/* ===========================================================
+   CAMPOS Y ETIQUETAS
+=========================================================== */
+.campo {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.campo label {
+    font-weight: bold;
+    min-width: 180px;
+    color: #222;
+}
+
+.campo input,
+.campo select {
+    flex: 1;
+    min-width: 180px;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.campo input:focus,
+.campo select:focus {
+    border-color: #2d89ef;
+    box-shadow: 0 0 6px rgba(45,137,239,0.3);
+    outline: none;
+}
+
+.campo input[readonly] {
+    background-color: #f5f5f5;
+}
+
+/* ===========================================================
+   TABLAS GENERALES
+=========================================================== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 5px;
+    font-size: 14px;
+}
+
+thead {
+    background-color: #e9e9e9;
+    font-weight: bold;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    text-align: center;
+    padding: 6px;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+input[type="number"] {
+    text-align: right;
+}
+
+/* ===========================================================
+   BOTONES
+=========================================================== */
+button {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    transition: all 0.2s ease-in-out;
+}
+
+/* 🔵 Botones azules (Agregar familia, costo, producto) */
+#btnAgregarFamilia,
+#btnAgregarCosto,
+.btnAgregarProducto {
+    background-color: #2d89ef;
+    color: white;
+}
+
+#btnAgregarFamilia:hover,
+#btnAgregarCosto:hover,
+.btnAgregarProducto:hover {
+    background-color: #1b5fb8;
+    transform: translateY(-1px);
+}
+
+/* 🟢 Botón verde guardar */
+.btn-guardar {
+    background-color: #28a745;
+    color: #fff;
+    padding: 8px 15px;
+}
+
+.btn-guardar:hover {
+    background-color: #218838;
+    transform: translateY(-1px);
+}
+
+/* 🔴 Botones de eliminar */
+.btnRojo,
+.btnEliminarFila,
+.btnEliminarFamilia {
+    background-color: #e74c3c;
+    color: white;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 5px;
+}
+
+.btnRojo:hover,
+.btnEliminarFila:hover,
+.btnEliminarFamilia:hover {
+    background-color: #c0392b;
+    transform: translateY(-1px);
+}
+
+/* ===========================================================
+   COSTOS ADICIONALES
+=========================================================== */
+.totales-costos {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.totales-costos label {
+    font-weight: bold;
+}
+
+.totales-costos input {
+    width: 150px;
+    text-align: right;
+}
+
+/* ===========================================================
+   DETALLE DE COMPRA
+=========================================================== */
+.familia-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.bloque-familia {
+    margin-top: 10px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 10px;
+    background-color: #fefefe;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+.bloque-familia:hover {
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+}
+
+.totales-familia {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.totales-familia label {
+    font-weight: bold;
+    min-width: 140px;
+}
+
+/* ===========================================================
+   RESUMEN DE FAMILIAS
+=========================================================== */
+.tabla-resumen {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.tabla-resumen thead {
+    background-color: #ececec;
+    font-weight: bold;
+}
+
+.tabla-resumen th,
+.tabla-resumen td {
+    border: 1px solid #ccc;
+    text-align: center;
+    padding: 5px;
+}
+
+.tabla-resumen input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: right;
+    color: #333;
+}
+
+/* ===========================================================
+   TOTALES FACTURA
+=========================================================== */
+.totales-factura {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.totales-factura .campo {
+    justify-content: flex-end;
+}
+
+.totales-factura label {
+    min-width: 200px;
+    text-align: right;
+    font-weight: bold;
+}
+
+.totales-factura input {
+    width: 150px;
+    text-align: right;
+}
+
+.fila-boton {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+/* ===========================================================
+   TRANSICIONES SUAVES
+=========================================================== */
+input, select, button, fieldset {
+    transition: all 0.25s ease-in-out;
+}
+
+/* ===========================================================
+   RESPONSIVE
+=========================================================== */
+@media (max-width: 900px) {
+    .grid-compras {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "mensaje"
+            "datos"
+            "costos"
+            "detalle"
+            "resumen"
+            "totales";
+    }
+}
+
+/* ===========================================================
+   MENSAJES GLOBALES (éxito, error, advertencia)
+=========================================================== */
+.mensaje {
+    display: none;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 15px;
+    font-weight: bold;
+    font-size: 1rem;
+    text-align: center;
+    border-radius: 0;
+    position: relative;
+    animation: aparecer 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+    z-index: 5;
+    margin-bottom: 10px;
+}
+
+.mensaje.exito {
+    display: block;
+    background-color: #d1f3d1;
+    color: #1e5c1e;
+    border-bottom: 2px solid #9dd89d;
+}
+
+.mensaje.error {
+    display: block;
+    background-color: #f8d7da;
+    color: #721c24;
+    border-bottom: 2px solid #e9aeb2;
+}
+
+.mensaje.advertencia {
+    display: block;
+    background-color: #fff3cd;
+    color: #856404;
+    border-bottom: 2px solid #ffeeba;
+}
+
+@keyframes aparecer {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
