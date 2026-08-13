@@ -217,6 +217,11 @@
             <input type="number" id="tolerancia_lbs_visual" style="width:100%; background-color: #2d3a4f; color: #ffffff; text-align: center;" readonly>
         </div>
 
+        <div class="form-group" style="flex: 1; min-width: 0;">
+            <label style="display:block; margin-bottom:8px; color: #ffffff; font-weight: 600;">Precio S/IVA</label>
+            <input type="number" id="precio_venta_sin_iva" step="0.01" style="width:100%; background-color: #1f2a3a; color: #ffffff; text-align: center; border: 1px solid #4a5568; padding: 6px; border-radius: 4px;">
+        </div>
+
         <div style="flex: 0 0 auto; margin-left: 10px;">
             <button type="button" id="agregarDetalle" class="btn-primary" style="height: 40px; padding: 0 20px; border-radius: 8px; font-weight: bold;">
                 Agregar línea
@@ -239,6 +244,7 @@
                 <th style="color: #ffc107;">Tolerancia (mts)</th>
                 <th style="color: #ffc107;">Tolerancia (lbs)</th>
                 <th>Peso (lb)</th>
+                <th style="text-align:right;">Precio S/IVA</th>
                 <th>Acción</th>
             </tr>
             </thead>
@@ -313,7 +319,8 @@ function renderizarProductos(lista) {
             <option value="${p.id_producto}"
                     data-factor="${p.peso_lb_mts || 0}"
                     data-tolerancia="${p.tolerancia || 0}"
-                    data-ubicacion="${p.nombre_ubicacion || ''}">
+                    data-ubicacion="${p.nombre_ubicacion || ''}"
+                    data-precio="${p.precio_venta_sin_iva || 0}">
                 ${textoMostrar}
             </option>`;
     });
@@ -360,6 +367,7 @@ document.getElementById('producto').addEventListener('change', function () {
     const selected = this.options[this.selectedIndex];
     if (selected && idProducto) {
         ubicacionInput.value = selected.getAttribute('data-ubicacion') || 'Sin ubicación';
+        document.getElementById('precio_venta_sin_iva').value = selected.getAttribute('data-precio') || 0;
     }
 
     if (!idProducto) return;
@@ -409,6 +417,7 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
     const tolMtsVis = document.getElementById('tolerancia_visual');
     const tolLbsVis = document.getElementById('tolerancia_lbs_visual');
     const medidaSolicitadaInp = document.getElementById('medida_solicitada');
+    const precioInp = document.getElementById('precio_venta_sin_iva');
 
     if (!familiaSel.value || !productoSel.value || !parseFloat(cantidadInp.value)) {
         alert('Complete los campos obligatorios');
@@ -424,11 +433,13 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
         cantidad_metros: parseFloat(cantidadInp.value),
         merma_mts: parseFloat(tolMtsVis.value) || 0,
         merma_lbs: parseFloat(tolLbsVis.value) || 0,
-        cantidad_libras: parseFloat(pesoInp.value) || 0
+        cantidad_libras: parseFloat(pesoInp.value) || 0,
+        precio_venta_sin_iva: parseFloat(precioInp.value) || 0
     });
 
     renderTabla();
     cantidadInp.value = ''; pesoInp.value = ''; medidaSolicitadaInp.value = '';
+    if(precioInp) precioInp.value = '';
     if(tolMtsVis) tolMtsVis.value = '';
     if(tolLbsVis) tolLbsVis.value = '';
 });
@@ -448,6 +459,7 @@ function renderTabla() {
                 <td style="text-align:right; color: #ffc107;">+ ${d.merma_mts.toFixed(4)}</td>
                 <td style="text-align:right; color: #ffc107;">+ ${d.merma_lbs.toFixed(4)}</td>
                 <td style="text-align:right;"><strong>${d.cantidad_libras.toFixed(2)}</strong></td>
+                <td style="text-align:right;">$${d.precio_venta_sin_iva.toFixed(2)}</td>
                 <td><button type="button" onclick="eliminarDetalle(${i})">Quitar</button></td>
             </tr>`;
     });

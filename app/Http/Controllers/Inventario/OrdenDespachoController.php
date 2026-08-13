@@ -139,6 +139,7 @@ class OrdenDespachoController extends Controller
                     'cantidad_libras'   => $pesoRealDescontado,
                     'merma_metros'      => $tolerancia,
                     'merma_libras'      => floatval($d['merma_lbs'] ?? 0),
+                    'precio_venta_sin_iva' => floatval($d['precio_venta_sin_iva'] ?? 0),
                     'id_empresa'        => session('idEmpresa'),
                     'created_at'        => now(),
                     'updated_at'        => now()
@@ -175,6 +176,7 @@ class OrdenDespachoController extends Controller
                     'merma_libras_grabada'   => $d['merma_lbs'],
                     'cantidad_total_retirada'=> $cantidadTotalSalida,
                     'peso'                   => $pesoRealDescontado,
+                    'precio_venta_sin_iva'   => floatval($d['precio_venta_sin_iva'] ?? 0),
                     'saldo_metros'           => $nuevoSaldoMetros,
                     'saldo_libras'           => $nuevoSaldoLibras,
                     'fecha'                  => now(),
