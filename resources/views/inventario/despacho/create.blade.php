@@ -181,7 +181,7 @@
         <div class="form-group" style="flex: 2.5; min-width: 0;">
             <label style="display:block; margin-bottom:8px; color: #ffffff; font-weight: 600;">Cantidad (Metros)</label>
             <div style="display:flex; gap:10px; align-items:center;">
-                <input type="number" id="cant_aux" placeholder="Cant."
+                <input type="number" id="cant_aux" placeholder="Cant." step="any"
                        style="width:90px; background-color: #1f2a3a; color: #4ade80; border: 1px solid #3b82f6; padding: 5px; text-align: center;">
 
                 <select id="unid_aux" style="width:110px; background-color: #1f2a3a; color: #fff; padding: 5px; border-radius: 4px;">
