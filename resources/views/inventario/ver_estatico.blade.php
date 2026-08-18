@@ -80,7 +80,7 @@
             <thead>
                 <tr style="background: #111; color: #666; font-size: 0.75rem; text-transform: uppercase;">
                     <th style="padding: 12px; text-align: left; border-bottom: 1px solid #333;">Código Pieza</th>
-                    <th style="padding: 12px; text-align: right; border-bottom: 1px solid #333;">Metros Actuales</th>
+                    <th style="padding: 12px; text-align: right; border-bottom: 1px solid #333;">Metros Iniciales</th>
                 </tr>
             </thead>
         <tbody>
@@ -93,7 +93,7 @@
 
                     {{-- 🪄 CAMBIO AQUÍ: Regresamos al verde brillante y negrita para los metros --}}
                     <td style="padding: 10px 15px; text-align: right; color: #4ade80; font-weight: bold; font-size: 1.1rem;">
-                        {{ number_format($pieza->cantidad_metros_actual, 2) }}
+                        {{ number_format($pieza->cantidad_metros_inicial, 2) }}
                     </td>
                 </tr>
             @endforeach
@@ -107,7 +107,7 @@
             </td>
             <td style="padding: 12px 15px; text-align: right; color: #4ade80; font-size: 1rem;">
                 @php
-                    $sumaMetros = $lote->piezas->sum('cantidad_metros_actual');
+                    $sumaMetros = $lote->piezas->sum('cantidad_metros_inicial');
                 @endphp
                 <strong>{{ number_format($sumaMetros, 2) }} m</strong>
 
