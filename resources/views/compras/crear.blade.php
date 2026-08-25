@@ -43,6 +43,8 @@
     {{-- Variables JS necesarias --}}
     <script>
         window.urlProductosPorFamilia = "{{ url('productos/por-familia') }}";
+        window.serverDraftJson = {!! $draftJson ? $draftJson : 'null' !!};
+        window.csrfToken = "{{ csrf_token() }}";
     </script>
 
     <form action="{{ route('compras.store') }}" method="POST" id="formCompra" class="erp-form">
@@ -229,8 +231,14 @@
         </div>
 
         <div class="erp-actions" style="margin-top: 40px; text-align: center;">
+            <button type="button" id="btnGuardarBorrador" class="btn-secondary" style="padding: 12px 20px; font-size: 1rem; cursor: pointer; margin-right: 15px; background-color: #4b5563; color: white; border: none; border-radius: 4px;">
+                <i class="fa-solid fa-file-lines"></i> Guardar Borrador
+            </button>
             <button type="submit" class="btn-primary" style="padding: 12px 30px; font-size: 1rem; cursor: pointer;">
                 <i class="fa-solid fa-save"></i> Guardar Compra
+            </button>
+            <button type="button" id="btnRestaurarBorrador" class="btn-info" style="display: none; padding: 12px 20px; font-size: 1rem; cursor: pointer; margin-left: 15px; background-color: #0ea5e9; color: white; border: none; border-radius: 4px;">
+                <i class="fa-solid fa-clock-rotate-left"></i> Restaurar Borrador
             </button>
             <a href="{{ route('compras.index') }}" class="btn-secondary" style="padding: 12px 30px; font-size: 1rem; text-decoration: none; margin-left: 15px; cursor: pointer;">
                 Cancelar

@@ -8,8 +8,6 @@ class CompraFamilia extends Model
 {
     protected $table = 'compra_familia';
     protected $primaryKey = 'id_compra_familia';
-    public $timestamps = false;
-
     protected $fillable = [
         'id_compra',
         'id_familia',
@@ -22,7 +20,8 @@ class CompraFamilia extends Model
         'precio_cif',
         'precio_unitario_bodega',
         'total_familia',
-        'id_empresa'
+        'id_empresa',
+        'id_usuario'
     ];
     public function familia()
 {

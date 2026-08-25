@@ -17,6 +17,7 @@ use App\Models\Inventario\Costos;
 use App\Models\Inventario\Producto;
 use App\Models\Inventario\Lote;
 use App\Models\Inventario\Pieza;
+use App\Models\Inventario\CompraBorrador;
 
 class CompraController extends Controller
 {
@@ -97,7 +98,11 @@ class CompraController extends Controller
             ->orderBy('fecha_ingreso', 'desc')
             ->get();
 
-        return view('compras.index', compact('compras'));
+        $borradores = CompraBorrador::where('id_usuario', session('idUsuario'))
+            ->where('id_empresa', session('idEmpresa'))
+            ->get();
+
+        return view('compras.index', compact('compras', 'borradores'));
     }
 
     public function create()
@@ -113,7 +118,44 @@ class CompraController extends Controller
             ->orderBy('nombre')
             ->get();
 
-        return view('compras.crear', compact('proveedores', 'familias', 'costos'));
+        $borrador = CompraBorrador::where('id_usuario', session('idUsuario'))
+            ->where('id_empresa', session('idEmpresa'))
+            ->first();
+
+        $draftJson = $borrador ? $borrador->datos_json : null;
+
+        return view('compras.crear', compact('proveedores', 'familias', 'costos', 'draftJson'));
+    }
+
+    public function guardarBorrador(Request $request)
+    {
+        $idUsuario = session('idUsuario');
+        $idEmpresa = session('idEmpresa');
+
+        if (!$idUsuario || !$idEmpresa) {
+            return response()->json(['success' => false, 'message' => 'Sesión no válida'], 401);
+        }
+
+        CompraBorrador::updateOrCreate(
+            ['id_usuario' => $idUsuario, 'id_empresa' => $idEmpresa],
+            ['datos_json' => json_encode($request->datos)]
+        );
+
+        return response()->json(['success' => true]);
+    }
+
+    public function eliminarBorrador(Request $request)
+    {
+        $idUsuario = session('idUsuario');
+        $idEmpresa = session('idEmpresa');
+
+        CompraBorrador::where('id_usuario', $idUsuario)->where('id_empresa', $idEmpresa)->delete();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true]);
+        }
+        
+        return redirect()->back()->with('success', 'Borrador descartado correctamente.');
     }
 
     public function store(Request $request)
@@ -187,6 +229,7 @@ class CompraController extends Controller
                     'importe_eu'     => $eu,
                     'importe_dolares'=> $usd,
                     'id_empresa'     => session('idEmpresa'),
+                    'id_usuario'     => session('idUsuario'),
                 ]);
 
                 $totalKG += $kg; $totalLB += $lb; $totalEU += $eu; $totalUSD += $usd;
@@ -215,7 +258,8 @@ class CompraController extends Controller
                         'id_costo'  => $request->id_costo[$j],
                         'valor_usd' => $vUSD,
                         'valor_eu'  => $request->valor_eu[$j] ?? 0,
-                        'id_empresa' => session('idEmpresa')
+                        'id_empresa' => session('idEmpresa'),
+                        'id_usuario' => session('idUsuario')
                     ]);
                 }
             }
@@ -246,6 +290,7 @@ class CompraController extends Controller
                     'precio_unitario_bodega' => $pBodega,
                     'total_familia'          => $pBodega * $pLB,
                     'id_empresa'             => session('idEmpresa'),
+                    'id_usuario'             => session('idUsuario'),
                 ]);
             }
 
@@ -258,6 +303,9 @@ class CompraController extends Controller
                 'importe_total_factura'    => $totalUSD,
                 'total_factura'            => $totalUSD + $totalCostosUSD,
             ]);
+
+            // F. ELIMINAR BORRADOR (Si existía)
+            CompraBorrador::where('id_usuario', session('idUsuario'))->where('id_empresa', session('idEmpresa'))->delete();
 
             DB::commit();
             return redirect()->route('compras.index')->with('success', 'Compra registrada correctamente.');

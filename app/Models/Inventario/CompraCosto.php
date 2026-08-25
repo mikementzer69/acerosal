@@ -8,15 +8,14 @@ class CompraCosto extends Model
 {
     protected $table = 'compra_costo';
     protected $primaryKey = 'id_compra_costo';
-    public $timestamps = false;
-
     protected $fillable = [
         'id_compra',
         'id_costo',
         'valor_usd',
         'valor_eu',
         'eliminado',
-        'id_empresa'
+        'id_empresa',
+        'id_usuario'
     ];
 
     public function compra()

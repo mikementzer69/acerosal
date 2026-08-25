@@ -48,6 +48,53 @@
             </tr>
         </thead>
         <tbody>
+            {{-- ✨ BORRADORES ✨ --}}
+            @if(isset($borradores) && $borradores->count() > 0)
+                @foreach($borradores as $b)
+                    @php 
+                        $datos = json_decode($b->datos_json); 
+                        $facturaStr = !empty($datos->numero_factura) ? $datos->numero_factura : 'Factura sin número';
+                    @endphp
+                    <tr style="background-color: #374151; border-bottom: 2px solid #fbbf24;">
+                        <td style="text-align: center; color: #fbbf24; font-weight: bold; font-size: 0.85em;">
+                            <i class="fa-solid fa-file-signature"></i> BORRADOR
+                        </td>
+
+                        <td style="font-weight: bold; color: #fff;">
+                            <i class="fa-solid fa-file-invoice" style="color: #fbbf24; margin-right: 5px;"></i>
+                            {{ $facturaStr }}
+                            <span style="background: #fbbf24; color: #000; font-size: 0.7em; padding: 2px 6px; border-radius: 4px; margin-left: 5px; vertical-align: middle;">INCOMPLETA</span>
+                        </td>
+
+                        <td style="color: #ddd; font-style: italic;">
+                            Proveedor ID: {{ $datos->id_proveedor ?? '---' }}
+                        </td>
+
+                        <td style="text-align: center; color: #aaa;">
+                            <span style="background: #1a1a1a; padding: 4px 10px; border-radius: 15px; border: 1px solid #333; font-size: 0.85em;">
+                                {{ $datos->fecha_ingreso ?? '---' }}
+                            </span>
+                        </td>
+
+                        <td style="text-align: right; color: #888;">---</td>
+                        <td style="text-align: right; color: #888;">---</td>
+
+                        <td style="text-align: center; white-space: nowrap;">
+                            <a href="{{ route('compras.nueva') }}" class="btn-primary" style="background-color: #0ea5e9; padding: 6px 12px; font-size: 0.85rem; text-decoration: none; border: none;" title="Continuar Borrador">
+                                <i class="fa-solid fa-pen"></i> Retomar
+                            </a>
+                            <form action="{{ route('compras.borrador.eliminar') }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas descartar este borrador?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn-danger" style="padding: 6px 12px; font-size: 0.85rem; border: none; cursor: pointer;" title="Descartar Borrador">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                @endforeach
+            @endif
+
             @forelse($compras as $c)
                 <tr style="border-bottom: 1px solid #333; transition: background 0.3s;">
                     <td style="text-align: center; color: #666;">{{ $c->id_compra }}</td>

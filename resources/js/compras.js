@@ -71,42 +71,50 @@ document.addEventListener('DOMContentLoaded', function () {
     // COSTOS ADICIONALES (MODIFICADO: SOLO USD)
     // ==========================================================
 
-    if (btnAgregarCosto) {
-        btnAgregarCosto.addEventListener('click', () => {
+    function agregarFilaCosto(dataRestauracion = null) {
+        const tr = document.createElement('tr');
 
-            const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>
+                <select name="id_costo[]" class="form-control">
+                    <option value="">Seleccione costo</option>
+                    ${window.costosOptions || ''}
+                </select>
+            </td>
 
-            tr.innerHTML = `
-                <td>
-                    <select name="id_costo[]" class="form-control">
-                        <option value="">Seleccione costo</option>
-                        ${window.costosOptions || ''}
-                    </select>
-                </td>
+            <td>
+                <input type="number" step="0.01" name="valor_usd[]" class="form-control campo-costo-usd" placeholder="$ 0.00">
+            </td>
 
-                <td>
-                    <input type="number" step="0.01" name="valor_usd[]" class="form-control campo-costo-usd" placeholder="$ 0.00">
-                </td>
+            <td style="text-align: center;">
+                <button type="button" class="btn-eliminar-fila btn btn-danger btn-sm">X</button>
+            </td>
+        `;
 
-                <td style="text-align: center;">
-                    <button type="button" class="btn-eliminar-fila btn btn-danger btn-sm">X</button>
-                </td>
-            `;
+        tablaCostosBody.appendChild(tr);
 
-            tablaCostosBody.appendChild(tr);
+        const selectCosto = tr.querySelector('select[name="id_costo[]"]');
+        const inputUsd = tr.querySelector('.campo-costo-usd');
+        const btnEliminar = tr.querySelector('.btn-eliminar-fila');
 
-            // Solo escuchamos el input USD para recalcular
-            const inputUsd = tr.querySelector('.campo-costo-usd');
-            const btnEliminar = tr.querySelector('.btn-eliminar-fila');
+        if(dataRestauracion) {
+            selectCosto.value = dataRestauracion.id_costo;
+            inputUsd.value = dataRestauracion.valor_usd;
+        }
 
-            inputUsd.addEventListener('input', recalcularTotales);
+        inputUsd.addEventListener('input', recalcularTotales);
 
-            btnEliminar.addEventListener('click', () => {
-                tr.remove();
-                recalcularTotales();
-            });
+        btnEliminar.addEventListener('click', () => {
+            tr.remove();
+            recalcularTotales();
         });
     }
+
+    if (btnAgregarCosto) {
+        btnAgregarCosto.addEventListener('click', () => agregarFilaCosto());
+    }
+
+    // Familias...
 
     // ==========================================================
     // FAMILIAS Y TABLAS DE PRODUCTOS
@@ -220,10 +228,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    function agregarFilaProducto(bloque, idFam) {
-        const tbody = bloque.querySelector('tbody');
-        const tr = document.createElement('tr');
-        const monedaActiva = document.querySelector('input[name="moneda"]:checked').value;
+    function agregarFilaProducto(bloque, idFam, dataRestauracion = null) {
+        return new Promise((resolve) => {
+            const tbody = bloque.querySelector('tbody');
+            const tr = document.createElement('tr');
+            const monedaActiva = document.querySelector('input[name="moneda"]:checked').value;
 
         tr.innerHTML = `
             <td><select name="id_producto[]" class="producto-select" style="width: 100%; font-size: 11px;"></select></td>
@@ -278,32 +287,51 @@ document.addEventListener('DOMContentLoaded', function () {
             recalcularTotales();
         });
 
-        fetch(`/productos/por-familia/${encodeURIComponent(idFam)}`)
-            .then(r => {
-                if (!r.ok) throw new Error('HTTP ' + r.status);
-                return r.json();
-            })
-            .then(data => {
-                let html = '<option value="">Seleccione producto</option>';
-                data.forEach(p => {
-                    const mm  = parseFloat(p.milimetros || 0);
-                    const plg = p.pulgadas || '';
-                    let detalles = "";
-                    if (mm > 0 || (plg !== '' && plg !== '-')) {
-                        const txtMM = mm > 0 ? `${mm} mm` : '';
-                        const txtPLG = (plg !== '' && plg !== '-') ? `${plg} plg` : '';
-                        const separador = (txtMM && txtPLG) ? ' / ' : '';
-                        detalles = ` (${txtMM}${separador}${txtPLG})`;
+            fetch(`/productos/por-familia/${encodeURIComponent(idFam)}`)
+                .then(r => {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.json();
+                })
+                .then(data => {
+                    let html = '<option value="">Seleccione producto</option>';
+                    data.forEach(p => {
+                        const mm  = parseFloat(p.milimetros || 0);
+                        const plg = p.pulgadas || '';
+                        let detalles = "";
+                        if (mm > 0 || (plg !== '' && plg !== '-')) {
+                            const txtMM = mm > 0 ? `${mm} mm` : '';
+                            const txtPLG = (plg !== '' && plg !== '-') ? `${plg} plg` : '';
+                            const separador = (txtMM && txtPLG) ? ' / ' : '';
+                            detalles = ` (${txtMM}${separador}${txtPLG})`;
+                        }
+                        const texto = `${p.descripcion}${detalles}`;
+                        html += `<option value="${p.id_producto}" data-relacion="${p.peso_lb_mts || 0}">${texto}</option>`;
+                    });
+                    selectProducto.innerHTML = html;
+                    
+                    if (dataRestauracion) {
+                        selectProducto.value = dataRestauracion.id_producto;
+                        inputCant.value = dataRestauracion.cantidad;
+                        tr.querySelector('.input-peso-kg').value = dataRestauracion.peso_kg;
+                        tr.querySelector('[name="peso_lb[]"]').value = dataRestauracion.peso_lb;
+                        tr.querySelector('.input-precio-eur').value = dataRestauracion.precio_kg_eur;
+                        tr.querySelector('.input-precio-usd').value = dataRestauracion.precio_kg_usd;
+                        tr.querySelector('.input-importe-eur').value = dataRestauracion.importe_eur;
+                        tr.querySelector('.input-importe-usd').value = dataRestauracion.importe_usd;
+                        
+                        if(dataRestauracion.is_auto) {
+                            inputCant.classList.add('is-auto');
+                            inputCant.style.color = "#60a5fa";
+                        }
                     }
-                    const texto = `${p.descripcion}${detalles}`;
-                    html += `<option value="${p.id_producto}" data-relacion="${p.peso_lb_mts || 0}">${texto}</option>`;
+                    resolve();
+                })
+                .catch(error => {
+                    console.error("Error cargando productos:", error);
+                    selectProducto.innerHTML = '<option value="">Error al cargar</option>';
+                    resolve();
                 });
-                selectProducto.innerHTML = html;
-            })
-            .catch(error => {
-                console.error("Error cargando productos:", error);
-                selectProducto.innerHTML = '<option value="">Error al cargar</option>';
-            });
+        });
     }
 
     // ==========================================================
@@ -468,5 +496,200 @@ document.addEventListener('DOMContentLoaded', function () {
 
         recalcularTotales();
     });
+
+    // ==========================================================
+    // SISTEMA DE BORRADOR (SERVIDOR)
+    // ==========================================================
+
+    const btnGuardarBorrador = document.getElementById('btnGuardarBorrador');
+    const btnRestaurarBorrador = document.getElementById('btnRestaurarBorrador');
+
+    if (btnGuardarBorrador) {
+        btnGuardarBorrador.addEventListener('click', function() {
+            const formData = {
+                tipo_facturacion: document.querySelector('input[name="tipo_facturacion"]:checked')?.value || 'unica',
+                id_proveedor: document.getElementById('id_proveedor').value,
+                numero_factura: document.getElementById('numero_factura').value,
+                fecha_ingreso: document.getElementById('fecha_ingreso').value,
+                fecha_emision_factura: document.getElementById('fecha_emision_factura').value,
+                moneda: document.querySelector('input[name="moneda"]:checked')?.value || 'USD',
+                tasa_cambio: document.getElementById('tasa_cambio').value,
+                costos: [],
+                familias: []
+            };
+
+            // Recopilar costos
+            tablaCostosBody.querySelectorAll('tr').forEach(tr => {
+                formData.costos.push({
+                    id_costo: tr.querySelector('select[name="id_costo[]"]').value,
+                    valor_usd: tr.querySelector('input[name="valor_usd[]"]').value
+                });
+            });
+
+            // Recopilar familias y productos
+            contenedorFamilias.querySelectorAll('.bloque-familia').forEach(b => {
+                const idFam = b.dataset.idFamilia;
+                const nombreFam = b.dataset.nombreFamilia;
+                const factura = b.querySelector('.input-factura-familia')?.value || '';
+                
+                const familiaData = {
+                    id_familia: idFam,
+                    nombre: nombreFam,
+                    factura: factura,
+                    productos: []
+                };
+
+                b.querySelectorAll('tbody tr').forEach(tr => {
+                    const cantInput = tr.querySelector('[name="cantidad[]"]');
+                    familiaData.productos.push({
+                        id_producto: tr.querySelector('.producto-select').value,
+                        cantidad: cantInput.value,
+                        peso_kg: tr.querySelector('[name="peso_kg[]"]').value,
+                        peso_lb: tr.querySelector('[name="peso_lb[]"]').value,
+                        precio_kg_eur: tr.querySelector('[name="precio_kg_eur[]"]').value,
+                        precio_kg_usd: tr.querySelector('[name="precio_kg_usd[]"]').value,
+                        importe_eur: tr.querySelector('[name="importe_eur[]"]').value,
+                        importe_usd: tr.querySelector('[name="importe_usd[]"]').value,
+                        is_auto: cantInput.classList.contains('is-auto')
+                    });
+                });
+
+                formData.familias.push(familiaData);
+            });
+
+            // Guardar en el servidor
+            fetch('/compras/borrador/guardar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': window.csrfToken || document.querySelector('input[name="_token"]').value
+                },
+                body: JSON.stringify({ datos: formData })
+            }).then(r => r.json()).then(res => {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Borrador Guardado',
+                        text: 'El progreso de la compra se ha guardado de forma segura en la nube.',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        background: '#1f2937', color: '#fff'
+                    });
+                    
+                    window.serverDraftJson = formData;
+                    if(btnRestaurarBorrador) btnRestaurarBorrador.style.display = 'inline-block';
+                } else {
+                    throw new Error(res.message || 'Error guardando borrador');
+                }
+            }).catch(e => {
+                console.error(e);
+                Swal.fire('Error', 'No se pudo guardar el borrador.', 'error');
+            });
+        });
+    }
+
+    if (btnRestaurarBorrador) {
+        btnRestaurarBorrador.addEventListener('click', async function() {
+            if(!window.serverDraftJson) return;
+            
+            const formData = window.serverDraftJson;
+
+            // 1. Restaurar datos generales
+            if(formData.tipo_facturacion) {
+                const radio = document.querySelector(`input[name="tipo_facturacion"][value="${formData.tipo_facturacion}"]`);
+                if(radio) {
+                    radio.checked = true;
+                    gestionarTipoFactura(formData.tipo_facturacion);
+                }
+            }
+            if(formData.id_proveedor) document.getElementById('id_proveedor').value = formData.id_proveedor;
+            if(formData.numero_factura) document.getElementById('numero_factura').value = formData.numero_factura;
+            if(formData.fecha_ingreso) document.getElementById('fecha_ingreso').value = formData.fecha_ingreso;
+            if(formData.fecha_emision_factura) document.getElementById('fecha_emision_factura').value = formData.fecha_emision_factura;
+            if(formData.moneda) {
+                const radioMoneda = document.querySelector(`input[name="moneda"][value="${formData.moneda}"]`);
+                if(radioMoneda) {
+                    radioMoneda.checked = true;
+                    gestionarMoneda(formData.moneda);
+                }
+            }
+            if(formData.tasa_cambio) document.getElementById('tasa_cambio').value = formData.tasa_cambio;
+
+            // Limpiar todo antes de restaurar
+            tablaCostosBody.innerHTML = '';
+            contenedorFamilias.innerHTML = '';
+            resumenBody.innerHTML = '';
+            for (let prop in familiasActivas) delete familiasActivas[prop];
+
+            // 2. Restaurar costos
+            if (formData.costos) {
+                formData.costos.forEach(costo => {
+                    agregarFilaCosto(costo);
+                });
+            }
+
+            // 3. Restaurar familias y productos
+            // Deshabilitamos temporalmente botones mientras carga
+            btnRestaurarBorrador.disabled = true;
+            const textOrg = btnRestaurarBorrador.innerHTML;
+            btnRestaurarBorrador.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Restaurando...';
+
+            if (formData.familias) {
+                for (const fam of formData.familias) {
+                    familiasActivas[fam.id_familia] = true;
+                    const opt = selectFamilia.querySelector(`option[value="${fam.id_familia}"]`);
+                    if (opt) opt.disabled = true;
+
+                    crearBloqueFamilia(fam.id_familia, fam.nombre);
+                    const bloque = contenedorFamilias.querySelector(`.bloque-familia[data-id-familia="${fam.id_familia}"]`);
+                    
+                    if(fam.factura) {
+                        const inputFac = bloque.querySelector('.input-factura-familia');
+                        if(inputFac) inputFac.value = fam.factura;
+                    }
+
+                    if (fam.productos) {
+                        for (const prod of fam.productos) {
+                            await agregarFilaProducto(bloque, fam.id_familia, prod);
+                        }
+                    }
+                }
+            }
+            
+            recalcularTotales();
+            
+            btnRestaurarBorrador.innerHTML = textOrg;
+            btnRestaurarBorrador.disabled = false;
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Borrador Restaurado',
+                text: 'Se han cargado los datos del borrador.',
+                timer: 2000,
+                showConfirmButton: false,
+                background: '#1f2937', color: '#fff'
+            });
+        });
+    }
+
+    // Comprobar borrador al cargar la página
+    if (window.serverDraftJson) {
+        if(btnRestaurarBorrador) btnRestaurarBorrador.style.display = 'inline-block';
+        
+        Swal.fire({
+            title: 'Borrador Encontrado en la Nube',
+            text: 'Tienes una compra guardada en borrador. ¿Deseas continuarla ahora?',
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, restaurar',
+            cancelButtonText: 'No, ignorar',
+            confirmButtonColor: '#0ea5e9',
+            background: '#1f2937', color: '#fff'
+        }).then((result) => {
+            if (result.isConfirmed && btnRestaurarBorrador) {
+                btnRestaurarBorrador.click();
+            }
+        });
+    }
 
 });

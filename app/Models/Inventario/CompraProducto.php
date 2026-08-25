@@ -8,8 +8,6 @@ class CompraProducto extends Model
 {
     protected $table = 'compra_producto';
     protected $primaryKey = 'id_compra_producto';
-    public $timestamps = false;
-
     protected $fillable = [
         'id_producto',
         'id_compra',
@@ -21,7 +19,8 @@ class CompraProducto extends Model
         'importe_eu',
         'importe_dolares',
         'eliminado',
-        'id_empresa'
+        'id_empresa',
+        'id_usuario'
     ];
 
     public function compra()

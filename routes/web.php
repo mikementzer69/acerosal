@@ -290,6 +290,12 @@ Route::prefix('compras')->group(function () {
     Route::post('/guardar', [CompraController::class, 'store'])
         ->name('compras.store');
 
+    Route::post('/borrador/guardar', [CompraController::class, 'guardarBorrador'])
+        ->name('compras.borrador.guardar');
+
+    Route::delete('/borrador/eliminar', [CompraController::class, 'eliminarBorrador'])
+        ->name('compras.borrador.eliminar');
+
     // 1. Ver el detalle de una compra (ESTA ES LA QUE TE FALTA)
     Route::get('/compras/{id}', [CompraController::class, 'show'])->name('compras.show');
 
