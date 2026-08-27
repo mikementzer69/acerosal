@@ -293,7 +293,7 @@ Route::prefix('compras')->group(function () {
     Route::post('/borrador/guardar', [CompraController::class, 'guardarBorrador'])
         ->name('compras.borrador.guardar');
 
-    Route::delete('/borrador/eliminar', [CompraController::class, 'eliminarBorrador'])
+    Route::delete('/borrador/eliminar/{id}', [CompraController::class, 'eliminarBorrador'])
         ->name('compras.borrador.eliminar');
 
     // 1. Ver el detalle de una compra (ESTA ES LA QUE TE FALTA)

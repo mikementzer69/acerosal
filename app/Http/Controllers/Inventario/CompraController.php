@@ -105,7 +105,7 @@ class CompraController extends Controller
         return view('compras.index', compact('compras', 'borradores'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         // 🔐 Filtramos los catálogos por empresa (excepto familias que es global)
         $proveedores = Proveedor::where('eliminado', 0)
@@ -118,38 +118,58 @@ class CompraController extends Controller
             ->orderBy('nombre')
             ->get();
 
-        $borrador = CompraBorrador::where('id_usuario', session('idUsuario'))
-            ->where('id_empresa', session('idEmpresa'))
-            ->first();
+        $draftJson = null;
+        $idBorrador = null;
 
-        $draftJson = $borrador ? $borrador->datos_json : null;
+        if ($request->has('draft')) {
+            $borrador = CompraBorrador::where('id_borrador', $request->draft)
+                ->where('id_usuario', session('idUsuario'))
+                ->where('id_empresa', session('idEmpresa'))
+                ->first();
+            
+            if ($borrador) {
+                $draftJson = $borrador->datos_json;
+                $idBorrador = $borrador->id_borrador;
+            }
+        }
 
-        return view('compras.crear', compact('proveedores', 'familias', 'costos', 'draftJson'));
+        return view('compras.crear', compact('proveedores', 'familias', 'costos', 'draftJson', 'idBorrador'));
     }
 
     public function guardarBorrador(Request $request)
     {
         $idUsuario = session('idUsuario');
         $idEmpresa = session('idEmpresa');
+        $datos = $request->datos;
+        $idBorrador = $datos['id_borrador'] ?? null;
 
-        if (!$idUsuario || !$idEmpresa) {
-            return response()->json(['success' => false, 'message' => 'Sesión no válida'], 401);
+        if ($idBorrador) {
+            CompraBorrador::where('id_borrador', $idBorrador)
+                ->where('id_usuario', $idUsuario)
+                ->where('id_empresa', $idEmpresa)
+                ->update(['datos_json' => json_encode($datos)]);
+                
+            return response()->json(['success' => true, 'id_borrador' => $idBorrador]);
+        } else {
+            $borrador = CompraBorrador::create([
+                'id_usuario' => $idUsuario,
+                'id_empresa' => $idEmpresa,
+                'datos_json' => json_encode($datos)
+            ]);
+            
+            return response()->json(['success' => true, 'id_borrador' => $borrador->id_borrador]);
         }
-
-        CompraBorrador::updateOrCreate(
-            ['id_usuario' => $idUsuario, 'id_empresa' => $idEmpresa],
-            ['datos_json' => json_encode($request->datos)]
-        );
-
-        return response()->json(['success' => true]);
     }
 
-    public function eliminarBorrador(Request $request)
+    public function eliminarBorrador(Request $request, $id)
     {
         $idUsuario = session('idUsuario');
         $idEmpresa = session('idEmpresa');
 
-        CompraBorrador::where('id_usuario', $idUsuario)->where('id_empresa', $idEmpresa)->delete();
+        CompraBorrador::where('id_borrador', $id)
+            ->where('id_usuario', $idUsuario)
+            ->where('id_empresa', $idEmpresa)
+            ->delete();
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['success' => true]);
@@ -304,8 +324,13 @@ class CompraController extends Controller
                 'total_factura'            => $totalUSD + $totalCostosUSD,
             ]);
 
-            // F. ELIMINAR BORRADOR (Si existía)
-            CompraBorrador::where('id_usuario', session('idUsuario'))->where('id_empresa', session('idEmpresa'))->delete();
+            // F. ELIMINAR BORRADOR (Si venía de un borrador)
+            if ($request->has('id_borrador') && !empty($request->id_borrador)) {
+                CompraBorrador::where('id_borrador', $request->id_borrador)
+                    ->where('id_usuario', session('idUsuario'))
+                    ->where('id_empresa', session('idEmpresa'))
+                    ->delete();
+            }
 
             DB::commit();
             return redirect()->route('compras.index')->with('success', 'Compra registrada correctamente.');

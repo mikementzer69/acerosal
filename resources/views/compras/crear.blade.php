@@ -49,6 +49,7 @@
 
     <form action="{{ route('compras.store') }}" method="POST" id="formCompra" class="erp-form">
         @csrf
+        <input type="hidden" name="id_borrador" id="id_borrador" value="{{ $idBorrador ?? '' }}">
 
         {{-- ============================================================
              SECCIÓN 1: DATOS GENERALES

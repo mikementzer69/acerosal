@@ -558,6 +558,8 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             // Guardar en el servidor
+            formData.id_borrador = document.getElementById('id_borrador') ? document.getElementById('id_borrador').value : '';
+
             fetch('/compras/borrador/guardar', {
                 method: 'POST',
                 headers: {
@@ -567,6 +569,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: JSON.stringify({ datos: formData })
             }).then(r => r.json()).then(res => {
                 if (res.success) {
+                    if (res.id_borrador && document.getElementById('id_borrador')) {
+                        document.getElementById('id_borrador').value = res.id_borrador;
+                    }
+
                     Swal.fire({
                         icon: 'success',
                         title: 'Borrador Guardado',
@@ -673,23 +679,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Comprobar borrador al cargar la página
-    if (window.serverDraftJson) {
-        if(btnRestaurarBorrador) btnRestaurarBorrador.style.display = 'inline-block';
-        
-        Swal.fire({
-            title: 'Borrador Encontrado en la Nube',
-            text: 'Tienes una compra guardada en borrador. ¿Deseas continuarla ahora?',
-            icon: 'info',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, restaurar',
-            cancelButtonText: 'No, ignorar',
-            confirmButtonColor: '#0ea5e9',
-            background: '#1f2937', color: '#fff'
-        }).then((result) => {
-            if (result.isConfirmed && btnRestaurarBorrador) {
+    if (window.serverDraftJson && document.getElementById('id_borrador') && document.getElementById('id_borrador').value) {
+        if(btnRestaurarBorrador) {
+            btnRestaurarBorrador.style.display = 'inline-block';
+            // Auto-restaurar sin preguntar (ya que el usuario le dio clic a "Retomar")
+            setTimeout(() => {
                 btnRestaurarBorrador.click();
-            }
-        });
+            }, 100);
+        }
     }
 
 });

@@ -80,10 +80,10 @@
                         <td style="text-align: right; color: #888;">---</td>
 
                         <td style="text-align: center; white-space: nowrap;">
-                            <a href="{{ route('compras.nueva') }}" class="btn-primary" style="background-color: #0ea5e9; padding: 6px 12px; font-size: 0.85rem; text-decoration: none; border: none;" title="Continuar Borrador">
+                            <a href="{{ route('compras.nueva', ['draft' => $b->id_borrador]) }}" class="btn-primary" style="background-color: #0ea5e9; padding: 6px 12px; font-size: 0.85rem; text-decoration: none; border: none;" title="Continuar Borrador">
                                 <i class="fa-solid fa-pen"></i> Retomar
                             </a>
-                            <form action="{{ route('compras.borrador.eliminar') }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas descartar este borrador?');">
+                            <form action="{{ route('compras.borrador.eliminar', $b->id_borrador) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas descartar este borrador?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-danger" style="padding: 6px 12px; font-size: 0.85rem; border: none; cursor: pointer;" title="Descartar Borrador">
