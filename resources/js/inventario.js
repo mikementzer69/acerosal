@@ -8,6 +8,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentCompraId = null;
     let lotes = {};
     let piezasVisuales = {}; // Aquí guardamos los "grupos" para la tabla visual
+    let draftData = null; // Guardar estado del borrador
+    let idBorrador = null;
 
     // ============================
     // 1. SELECCIONAR COMPRA
@@ -41,6 +43,15 @@ if (listbox) {
         lotes = {};
         piezasVisuales = {};
         contenedorLotes.innerHTML = "";
+        draftData = data.borrador;
+        idBorrador = data.id_borrador;
+
+        const btnRestaurar = document.getElementById("btnRestaurarBorrador");
+        if (draftData && btnRestaurar) {
+            btnRestaurar.style.display = "flex";
+        } else if (btnRestaurar) {
+            btnRestaurar.style.display = "none";
+        }
 
         // generar tarjetas JS
         data.detalle.forEach((prod, index) => {
@@ -264,12 +275,18 @@ if (listbox) {
         const maxMetros = lotes[idProd].Cantidad_Total_Metros;
 
         if (Math.abs(totalMetGlobal - maxMetros) > 0.05) {
-            celdaMetros.style.color = "#ef4444"; // Rojo
             celdaMetros.style.fontWeight = "bold";
-            celdaMetros.textContent = `${totalMetGlobal.toFixed(4)} (Faltan/Sobran)`;
+            const diferencia = totalMetGlobal - maxMetros;
+            if (diferencia < 0) {
+                celdaMetros.style.setProperty("color", "#f59e0b", "important"); // Naranja (Faltan)
+                celdaMetros.textContent = `${totalMetGlobal.toFixed(4)} (Faltan: ${Math.abs(diferencia).toFixed(4)})`;
+            } else {
+                celdaMetros.style.setProperty("color", "#ff4444", "important"); // Rojo (Sobran)
+                celdaMetros.textContent = `${totalMetGlobal.toFixed(4)} (Sobran: ${diferencia.toFixed(4)})`;
+            }
             lotes[idProd].tieneError = true;
         } else {
-            celdaMetros.style.color = "#4ade80"; // Verde
+            celdaMetros.style.setProperty("color", "#4ade80", "important"); // Verde brillante
             celdaMetros.style.fontWeight = "bold";
             celdaMetros.textContent = totalMetGlobal.toFixed(4) + " ✔️";
             lotes[idProd].tieneError = false;
@@ -355,5 +372,87 @@ if (listbox) {
                 alert("Error de conexión al guardar.");
             }
         });
+    }    // ============================
+    // 5. BORRADORES
+    // ============================
+    const btnGuardarBorrador = document.getElementById("btnGuardarBorrador");
+    if (btnGuardarBorrador) {
+        btnGuardarBorrador.addEventListener("click", async () => {
+            if (!currentCompraId) {
+                alert("Seleccione una compra primero.");
+                return;
+            }
+
+            try {
+                btnGuardarBorrador.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+                btnGuardarBorrador.disabled = true;
+
+                const res = await fetch("/inventario/borrador/guardar", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": window.csrfToken
+                    },
+                    body: JSON.stringify({
+                        id_compra: currentCompraId,
+                        lotes: JSON.stringify(lotes),
+                        piezasVisuales: JSON.stringify(piezasVisuales)
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    Swal.fire('¡Borrador guardado!', 'Puedes continuar más tarde.', 'success');
+                    idBorrador = data.id_borrador;
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            } catch (err) {
+                Swal.fire('Error', err.message, 'error');
+            } finally {
+                btnGuardarBorrador.innerHTML = '<i class="fa-solid fa-file-lines"></i> Borrador';
+                btnGuardarBorrador.disabled = false;
+            }
+        });
     }
+
+    const btnRestaurarBorrador = document.getElementById("btnRestaurarBorrador");
+    if (btnRestaurarBorrador) {
+        btnRestaurarBorrador.addEventListener("click", () => {
+            if (!draftData) return;
+            
+            Swal.fire({
+                title: '¿Restaurar borrador?',
+                text: "Se sobreescribirán las piezas que hayas agregado ahora.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#0ea5e9',
+                cancelButtonColor: '#4b5563',
+                confirmButtonText: 'Sí, restaurar',
+                background: '#1a1a1a',
+                color: '#ddd'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Cargar datos
+                    lotes = draftData.lotes;
+                    piezasVisuales = draftData.piezasVisuales;
+
+                    // Actualizar tablas
+                    for (const idProd in piezasVisuales) {
+                        actualizarTabla(idProd);
+                    }
+                    
+                    btnRestaurarBorrador.style.display = "none"; // Ya restaurado
+                    Swal.fire({
+                        title: 'Restaurado', 
+                        text: 'El borrador ha sido cargado con éxito.', 
+                        icon: 'success',
+                        background: '#1a1a1a',
+                        color: '#ddd'
+                    });
+                }
+            });
+        });
+    }
+
 }); // Fin del DOMContentLoaded

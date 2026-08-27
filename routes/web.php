@@ -233,6 +233,12 @@ Route::prefix('inventario')->group(function () {
     Route::post('/automatico/guardar', [InventarioController::class, 'guardarAutomatico'])
         ->name('guardar-automatico');
 
+    // Borradores de inventario
+    Route::post('/borrador/guardar', [InventarioController::class, 'guardarBorrador'])
+        ->name('borrador-guardar');
+    Route::delete('/borrador/eliminar/{id}', [InventarioController::class, 'eliminarBorrador'])
+        ->name('borrador-eliminar');
+
     // CORREGIDO: Quitamos el prefijo repetido y cerramos el grupo
     Route::get('/producto/{idProducto}/siguiente-lote', [InventarioController::class, 'siguienteCodigoLote'])
         ->name('siguiente-lote');

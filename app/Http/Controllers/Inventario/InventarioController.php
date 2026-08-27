@@ -9,6 +9,7 @@ use App\Models\Inventario\CompraProducto;
 use App\Models\Inventario\Lote;
 use App\Models\Inventario\Pieza;
 use App\Models\Inventario\MovimientoInventario;
+use App\Models\Inventario\InventarioBorrador;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -120,6 +121,12 @@ class InventarioController extends Controller
                     ];
                 });
 
+            // Buscamos si existe un borrador para esta compra y usuario
+            $borrador = InventarioBorrador::where('id_compra', $id)
+                ->where('id_usuario', session('idUsuario') ?? 1)
+                ->where('id_empresa', session('idEmpresa'))
+                ->first();
+
             return response()->json([
                 'success' => true,
                 'compra' => [
@@ -131,6 +138,8 @@ class InventarioController extends Controller
                     'Estado'         => $estadoCompra, // 👈 LA LLAVE PARA EL JS
                 ],
                 'detalle' => $detalle,
+                'borrador' => $borrador ? json_decode($borrador->datos_json) : null,
+                'id_borrador' => $borrador ? $borrador->id_borrador : null,
             ]);
 
         } catch (\Exception $e) {
@@ -318,6 +327,12 @@ public function guardarAutomatico(Request $request)
         // H. Finalizar Compra (Ya se hace dentro de procesarCostos, pero lo aseguramos)
         $compra->update(['nueva_compra' => 0]);
 
+        // I. Eliminar borrador si existía
+        InventarioBorrador::where('id_compra', $idCompra)
+            ->where('id_usuario', session('idUsuario') ?? 1)
+            ->where('id_empresa', session('idEmpresa'))
+            ->delete();
+
         DB::commit();
         return response()->json(['success' => true, 'message' => 'Inventario y Costo Promedio actualizados correctamente.']);
 
@@ -325,5 +340,61 @@ public function guardarAutomatico(Request $request)
         DB::rollBack();
         Log::error("Fallo en Ingreso de Inventario: " . $th->getMessage());
         return response()->json(['success' => false, 'message' => 'Error: ' . $th->getMessage()]);
+    }
+
+    public function guardarBorrador(Request $request)
+    {
+        try {
+            $idCompra = $request->input('id_compra');
+            $lotes = $request->input('lotes', '[]');
+            $piezasVisuales = $request->input('piezasVisuales', '{}');
+
+            $datosJson = json_encode([
+                'lotes' => json_decode($lotes, true),
+                'piezasVisuales' => json_decode($piezasVisuales, true)
+            ]);
+
+            $borrador = InventarioBorrador::updateOrCreate(
+                [
+                    'id_compra' => $idCompra,
+                    'id_usuario' => session('idUsuario') ?? 1,
+                    'id_empresa' => session('idEmpresa'),
+                ],
+                [
+                    'datos_json' => $datosJson,
+                ]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Borrador guardado exitosamente.',
+                'id_borrador' => $borrador->id_borrador
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error guardando borrador de inventario: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al guardar el borrador: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function eliminarBorrador($id)
+    {
+        try {
+            $borrador = InventarioBorrador::where('id_borrador', $id)
+                ->where('id_usuario', session('idUsuario') ?? 1)
+                ->where('id_empresa', session('idEmpresa'))
+                ->first();
+
+            if ($borrador) {
+                $borrador->delete();
+            }
+
+            return response()->json(['success' => true, 'message' => 'Borrador eliminado.']);
+        } catch (\Exception $e) {
+            Log::error("Error eliminando borrador de inventario: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error al eliminar.']);
+        }
     }
 }}

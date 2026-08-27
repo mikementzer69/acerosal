@@ -99,6 +99,16 @@
                         <i class="fa-solid fa-xmark"></i> Cancelar
                     </button>
 
+                    {{-- Botón Guardar Borrador --}}
+                    <button type="button" id="btnGuardarBorrador" class="btn-draft" style="flex: 1; padding: 12px; background-color: #4b5563; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-file-lines"></i> Borrador
+                    </button>
+                    
+                    {{-- Botón Restaurar Borrador --}}
+                    <button type="button" id="btnRestaurarBorrador" class="btn-info" style="display: none; flex: 1; padding: 12px; background-color: #0ea5e9; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; justify-content: center; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Restaurar
+                    </button>
+
                     {{-- Botón Guardar (Azul) --}}
                     {{-- NOTA: El ID se mantiene para que tu JS original siga funcionando --}}
                     <button type="button" id="btnGuardarPREVIO" class="btn-save">
@@ -121,6 +131,7 @@
 
 <script>
     window.APP_URL = "{{ url('/') }}";
+    window.csrfToken = "{{ csrf_token() }}";
     let idCompraActiva = null;
 
     // 1. SELECCIÓN (Siempre disponible para el panel izquierdo)
