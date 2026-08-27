@@ -341,6 +341,7 @@ public function guardarAutomatico(Request $request)
         Log::error("Fallo en Ingreso de Inventario: " . $th->getMessage());
         return response()->json(['success' => false, 'message' => 'Error: ' . $th->getMessage()]);
     }
+}
 
     public function guardarBorrador(Request $request)
     {
@@ -397,4 +398,4 @@ public function guardarAutomatico(Request $request)
             return response()->json(['success' => false, 'message' => 'Error al eliminar.']);
         }
     }
-}}
+}
