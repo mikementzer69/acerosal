@@ -244,8 +244,8 @@ if (listbox) {
                 <tr>
                     <td style="font-weight:bold; color:#4ade80;">${p.Cantidad}</td>
                     <td>${p.CodigoVisual}</td>
-                    <td>${p.MetrosUnitario.toFixed(2)}</td>
-                    <td>${p.PesoTotal.toFixed(2)}</td>
+                    <td>${p.MetrosUnitario.toFixed(4)}</td>
+                    <td>${p.PesoTotal.toFixed(4)}</td>
                     <td>
                         <button class="btn-eliminar-pieza" data-prod="${idProd}" data-index="${i}">❌</button>
                     </td>
@@ -255,7 +255,7 @@ if (listbox) {
 
         // Totales visuales
         const celdaMetros = document.getElementById(`totMet_${idProd}`);
-        document.getElementById(`totLb_${idProd}`).textContent = totalLbGlobal.toFixed(2);
+        document.getElementById(`totLb_${idProd}`).textContent = totalLbGlobal.toFixed(4);
 
         document.getElementById(`total_${idProd}`).value = conteoPiezasFisicas;
         lotes[idProd].Total_Piezas = conteoPiezasFisicas;
@@ -266,12 +266,12 @@ if (listbox) {
         if (Math.abs(totalMetGlobal - maxMetros) > 0.05) {
             celdaMetros.style.color = "#ef4444"; // Rojo
             celdaMetros.style.fontWeight = "bold";
-            celdaMetros.textContent = `${totalMetGlobal.toFixed(2)} (Faltan/Sobran)`;
+            celdaMetros.textContent = `${totalMetGlobal.toFixed(4)} (Faltan/Sobran)`;
             lotes[idProd].tieneError = true;
         } else {
             celdaMetros.style.color = "#4ade80"; // Verde
             celdaMetros.style.fontWeight = "bold";
-            celdaMetros.textContent = totalMetGlobal.toFixed(2) + " ✔️";
+            celdaMetros.textContent = totalMetGlobal.toFixed(4) + " ✔️";
             lotes[idProd].tieneError = false;
         }
     }

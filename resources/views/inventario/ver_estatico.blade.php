@@ -51,7 +51,7 @@
         </div>
 
         <div style="font-weight: bold;">
-            Total: {{ number_format($lote->cantidad_total_metros, 2) }} m
+            Total: {{ number_format($lote->cantidad_total_metros, 4) }} m
         </div>
     </div>
 
@@ -93,7 +93,7 @@
 
                     {{-- 🪄 CAMBIO AQUÍ: Regresamos al verde brillante y negrita para los metros --}}
                     <td style="padding: 10px 15px; text-align: right; color: #4ade80; font-weight: bold; font-size: 1.1rem;">
-                        {{ number_format($pieza->cantidad_metros_inicial, 2) }}
+                        {{ number_format($pieza->cantidad_metros_inicial, 4) }}
                     </td>
                 </tr>
             @endforeach
@@ -109,7 +109,7 @@
                 @php
                     $sumaMetros = $lote->piezas->sum('cantidad_metros_inicial');
                 @endphp
-                <strong>{{ number_format($sumaMetros, 2) }} m</strong>
+                <strong>{{ number_format($sumaMetros, 4) }} m</strong>
 
                 {{-- Validación visual: Si coincide con el total del lote, ponemos un check --}}
                 @if(abs($sumaMetros - $lote->cantidad_total_metros) < 0.01)
