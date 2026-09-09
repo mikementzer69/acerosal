@@ -131,7 +131,7 @@
                                 <td class="text-center">
                                     <span class="badge bg-light text-dark border small">
                                         <i class="fa-solid fa-location-dot text-danger me-1" style="font-size: 9px;"></i>
-                                        {{ $d->familia->ubicacion ?? ($d->producto->ubicacion ?? 'B-01') }}
+                                        {{ $d->familia->ubicacion->nombre ?? ($d->producto->ubicacion->nombre ?? 'B-01') }}
                                     </span>
                                 </td>
 
