@@ -46,7 +46,36 @@
                    value="{{ old('detalle_color', $familia->detalle_color ?? '#000000') }}">
         </div>
 
+        <div style="display: flex; gap: 15px; width: 100%;">
+            {{-- PRECIO LISTA --}}
+            <div class="form-group" style="flex: 1;">
+                <label>Precio de Lista</label>
+                <input type="number"
+                       step="0.01"
+                       min="0"
+                       name="precio_lista"
+                       value="{{ old('precio_lista', $familia->precio_lista ?? 0) }}">
+            </div>
 
+            {{-- PRECIO ESPECIAL --}}
+            <div class="form-group" style="flex: 1;">
+                <label>Precio Especial</label>
+                <input type="number"
+                       step="0.01"
+                       min="0"
+                       name="precio_especial"
+                       value="{{ old('precio_especial', $familia->precio_especial ?? 0) }}">
+            </div>
+
+            {{-- PRECIO AUTORIZADO --}}
+            <div class="form-group" style="flex: 1;">
+                <label>¿Requiere Autorización para Precio?</label>
+                <select name="precio_autorizado">
+                    <option value="N" {{ old('precio_autorizado', $familia->precio_autorizado) == 'N' ? 'selected' : '' }}>No</option>
+                    <option value="S" {{ old('precio_autorizado', $familia->precio_autorizado) == 'S' ? 'selected' : '' }}>Sí</option>
+                </select>
+            </div>
+        </div>
 
         {{-- BOTONES --}}
         <div class="erp-actions">

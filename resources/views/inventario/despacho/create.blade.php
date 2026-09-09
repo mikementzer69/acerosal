@@ -119,6 +119,25 @@
         </div>
     </div>
 
+    <div style="display:flex; gap:12px; margin-top:10px;">
+        <div class="form-group" style="flex:1;">
+            <label>Tipo de Precio</label>
+            <select name="tipo_precio" id="tipo_precio" style="background:#1f2a3a; color:#fff; padding:8px; border:1px solid #4a5568; border-radius:4px; width:100%;">
+                <option value="lista">Precio de Lista</option>
+                <option value="especial">Precio Especial</option>
+            </select>
+        </div>
+
+        <div class="form-group" style="flex:1; display:none;" id="div_motivo_precio">
+            <label>Justificación de Precio Especial</label>
+            <select name="motivo_precio" id="motivo_precio" style="background:#1f2a3a; color:#fff; padding:8px; border:1px solid #4a5568; border-radius:4px; width:100%;">
+                <option value="">Seleccione justificación...</option>
+                <option value="1">Precio autorizado por gerencia</option>
+                <option value="2">Precio igual competencia</option>
+            </select>
+        </div>
+    </div>
+
     <hr>
 
     <h4>Detalle</h4>
@@ -129,7 +148,11 @@
             <select id="familia">
                 <option value="">Seleccione Calidad</option>
                 @foreach($familias as $f)
-                    <option value="{{ $f->id_familia }}" data-ubicacion="{{ $f->ubicacion }}">
+                    <option value="{{ $f->id_familia }}" 
+                            data-ubicacion="{{ $f->ubicacion }}"
+                            data-preciolista="{{ $f->precio_lista ?? 0 }}"
+                            data-precioespecial="{{ $f->precio_especial ?? 0 }}"
+                            data-precioautorizado="{{ $f->precio_autorizado ?? 'N' }}">
                         {{ $f->nombre }}
                     </option>
                 @endforeach
@@ -219,7 +242,7 @@
 
         <div class="form-group" style="flex: 1; min-width: 0;">
             <label style="display:block; margin-bottom:8px; color: #ffffff; font-weight: 600;">Precio S/IVA</label>
-            <input type="number" id="precio_venta_sin_iva" step="0.01" style="width:100%; background-color: #1f2a3a; color: #ffffff; text-align: center; border: 1px solid #4a5568; padding: 6px; border-radius: 4px;">
+            <input type="number" id="precio_venta_sin_iva" step="0.01" style="width:100%; background-color: #2d3a4f; color: #ffffff; text-align: center; border: 1px solid #4a5568; padding: 6px; border-radius: 4px;" readonly>
         </div>
 
         <div style="flex: 0 0 auto; margin-left: 10px;">
@@ -271,6 +294,48 @@
 // Variable global para guardar los productos de la familia seleccionada
 let productosLocal = [];
 
+// 0. Cambio Tipo Precio
+document.getElementById('tipo_precio').addEventListener('change', function() {
+    const val = this.value;
+    const divMotivo = document.getElementById('div_motivo_precio');
+    if(val === 'especial') {
+        divMotivo.style.display = 'block';
+    } else {
+        divMotivo.style.display = 'none';
+        document.getElementById('motivo_precio').value = '';
+    }
+    actualizarPrecioDesdeFamilia();
+});
+
+function actualizarPrecioDesdeFamilia() {
+    const famSel = document.getElementById('familia');
+    const tipoPrecio = document.getElementById('tipo_precio').value;
+    const inputPrecio = document.getElementById('precio_venta_sin_iva');
+    
+    if (famSel.selectedIndex > 0) {
+        const opt = famSel.options[famSel.selectedIndex];
+        const pLista = opt.getAttribute('data-preciolista');
+        const pEspecial = opt.getAttribute('data-precioespecial');
+        const pAutorizado = opt.getAttribute('data-precioautorizado');
+        
+        if (tipoPrecio === 'especial') {
+            if (pAutorizado === 'S') {
+                inputPrecio.value = parseFloat(pEspecial).toFixed(2);
+                document.getElementById('div_motivo_precio').style.display = 'block';
+            } else {
+                inputPrecio.value = parseFloat(pLista).toFixed(2);
+                alert("Esta Calidad no tiene el Precio Especial autorizado. Se aplicará el Precio de Lista.");
+                document.getElementById('tipo_precio').value = 'lista';
+                document.getElementById('div_motivo_precio').style.display = 'none';
+            }
+        } else {
+            inputPrecio.value = parseFloat(pLista).toFixed(2);
+        }
+    } else {
+        inputPrecio.value = '';
+    }
+}
+
 // 1. Cambio de Familia
 document.getElementById('familia').addEventListener('change', function () {
     const idFamilia = this.value;
@@ -287,8 +352,11 @@ document.getElementById('familia').addEventListener('change', function () {
         productoSelect.innerHTML = '<option value="">Seleccione producto</option>';
         productoSelect.disabled = true;
         productosLocal = [];
+        actualizarPrecioDesdeFamilia();
         return;
     }
+
+    actualizarPrecioDesdeFamilia();
 
     productoSelect.innerHTML = '<option value="">Cargando productos...</option>';
     productoSelect.disabled = true;
@@ -367,7 +435,7 @@ document.getElementById('producto').addEventListener('change', function () {
     const selected = this.options[this.selectedIndex];
     if (selected && idProducto) {
         ubicacionInput.value = selected.getAttribute('data-ubicacion') || 'Sin ubicación';
-        document.getElementById('precio_venta_sin_iva').value = selected.getAttribute('data-precio') || 0;
+        // PRECIO YA NO SE TOMA DEL PRODUCTO, SINO DE LA FAMILIA
     }
 
     if (!idProducto) return;

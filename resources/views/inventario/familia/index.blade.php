@@ -50,6 +50,8 @@
                 <th style="width:120px;">Código</th>
                 <th style="width:220px;">Nombre</th>
                 <th>Descripción</th>
+                <th style="width:100px; text-align:right;">P. Lista</th>
+                <th style="width:100px; text-align:right;">P. Esp.</th>
                 <th style="width:90px; text-align:center;">Color</th>
                 <th style="width:140px; text-align:center;">Acciones</th>
             </tr>
@@ -61,6 +63,8 @@
                         <td>{{ $f->codigo }}</td>
                         <td>{{ $f->nombre }}</td>
                         <td>{!! nl2br(e($f->descripcion)) !!}</td>
+                        <td style="text-align:right;">$ {{ number_format($f->precio_lista, 2) }}</td>
+                        <td style="text-align:right;">$ {{ number_format($f->precio_especial, 2) }}</td>
 
                         <td>
                             @if($f->detalle_color)
@@ -95,7 +99,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="no-results">Sin resultados.</td>
+                        <td colspan="7" class="no-results">Sin resultados.</td>
                     </tr>
                 @endforelse
             </tbody>

@@ -16,6 +16,7 @@ class OrdenDespacho extends Model
         'id_usuario',
         'estado',
         'observaciones',
+        'motivo_precio',
         'id_empresa'
     ];
 

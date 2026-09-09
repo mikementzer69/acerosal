@@ -41,6 +41,9 @@ class FamiliaController extends Controller
             'descripcion'   => 'nullable|string',
             'detalle_color' => 'nullable|string|max:20',
             'ubicacion'    => 'nullable|string|max:20',
+            'precio_lista' => 'nullable|numeric|min:0',
+            'precio_especial' => 'nullable|numeric|min:0',
+            'precio_autorizado' => 'nullable|in:S,N',
         ]);
 
         Familia::insertar([
@@ -49,6 +52,9 @@ class FamiliaController extends Controller
             'descripcion'   => $request->descripcion,
             'detalle_color' => $request->detalle_color,
             'ubicacion'     => $request->ubicacion,
+            'precio_lista'      => $request->precio_lista,
+            'precio_especial'   => $request->precio_especial,
+            'precio_autorizado' => $request->precio_autorizado ?? 'N',
         ]);
 
         return redirect()->route('familia.lista')
@@ -78,6 +84,9 @@ class FamiliaController extends Controller
         'descripcion' => 'nullable|string',
         'detalle_color' => 'nullable|string|max:20',
         'ubicacion' => 'nullable|string|max:20',
+        'precio_lista' => 'nullable|numeric|min:0',
+        'precio_especial' => 'nullable|numeric|min:0',
+        'precio_autorizado' => 'nullable|in:S,N',
     ]);
 
 
@@ -87,6 +96,9 @@ class FamiliaController extends Controller
             'descripcion'   => $request->descripcion,
             'detalle_color' => $request->detalle_color,
             'ubicacion'     => $request->ubicacion,
+            'precio_lista'      => $request->precio_lista,
+            'precio_especial'   => $request->precio_especial,
+            'precio_autorizado' => $request->precio_autorizado ?? 'N',
         ]);
 
         return redirect()->route('familia.lista')

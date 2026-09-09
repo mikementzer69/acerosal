@@ -84,6 +84,7 @@ class OrdenDespachoController extends Controller
                 'estado'        => 'FINALIZADA',
                 'facturado'     => 0,
                 'observaciones' => $request->observaciones ?? null,
+                'motivo_precio' => $request->motivo_precio ?? null,
                 'id_empresa'    => session('idEmpresa')
             ]);
 
@@ -212,6 +213,11 @@ class OrdenDespachoController extends Controller
                         'stock_metros'      => DB::raw("stock_metros - $cantidadTotalSalida"),
                         'peso_total_libras' => DB::raw("peso_total_libras - $pesoRealDescontado")
                     ]);
+
+                // 5. APAGAR PERMISO DE PRECIO ESPECIAL POR SEGURIDAD
+                DB::table('familias')
+                    ->where('id_familia', $d['id_familia'])
+                    ->update(['precio_autorizado' => 'N']);
             }
 
             DB::commit();

@@ -17,6 +17,9 @@ class Familia extends Model
         'descripcion',
         'detalle_color',
         'ubicacion',
+        'precio_lista',
+        'precio_especial',
+        'precio_autorizado',
         'inactivo'
     ];
 
@@ -31,6 +34,9 @@ class Familia extends Model
             'descripcion'   => $d['descripcion'] ?? null,
             'detalle_color' => $d['detalle_color'] ?? null,
             'ubicacion'     => $d['ubicacion'] ?? null,
+            'precio_lista'      => $d['precio_lista'] ?? 0,
+            'precio_especial'   => $d['precio_especial'] ?? 0,
+            'precio_autorizado' => $d['precio_autorizado'] ?? 'N',
             'inactivo'      => 0
         ]);
     }
@@ -46,7 +52,10 @@ class Familia extends Model
                 'nombre'        => $d['nombre'],
                 'descripcion'   => $d['descripcion'] ?? null,
                 'detalle_color' => $d['detalle_color'] ?? null,
-                'ubicacion'     => $d['ubicacion'] ?? null
+                'ubicacion'     => $d['ubicacion'] ?? null,
+                'precio_lista'      => $d['precio_lista'] ?? 0,
+                'precio_especial'   => $d['precio_especial'] ?? 0,
+                'precio_autorizado' => $d['precio_autorizado'] ?? 'N'
             ]);
     }
 
