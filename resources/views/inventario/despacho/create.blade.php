@@ -492,6 +492,7 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
     const tolLbsVis = document.getElementById('tolerancia_lbs_visual');
     const medidaSolicitadaInp = document.getElementById('medida_solicitada');
     const precioInp = document.getElementById('precio_venta_sin_iva');
+    const tipoPrecioInp = document.getElementById('tipo_precio');
 
     if (!familiaSel.value || !productoSel.value || !parseFloat(cantidadInp.value)) {
         alert('Complete los campos obligatorios');
@@ -508,7 +509,8 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
         merma_mts: parseFloat(tolMtsVis.value) || 0,
         merma_lbs: parseFloat(tolLbsVis.value) || 0,
         cantidad_libras: parseFloat(pesoInp.value) || 0,
-        precio_venta_sin_iva: parseFloat(precioInp.value) || 0
+        precio_venta_sin_iva: parseFloat(precioInp.value) || 0,
+        tipo_precio: tipoPrecioInp.value
     });
 
     renderTabla();

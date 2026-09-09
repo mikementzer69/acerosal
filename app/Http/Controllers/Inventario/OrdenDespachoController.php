@@ -215,9 +215,11 @@ class OrdenDespachoController extends Controller
                     ]);
 
                 // 5. APAGAR PERMISO DE PRECIO ESPECIAL POR SEGURIDAD
-                DB::table('familias')
-                    ->where('id_familia', $d['id_familia'])
-                    ->update(['precio_autorizado' => 'N']);
+                if (isset($d['tipo_precio']) && $d['tipo_precio'] === 'especial') {
+                    DB::table('familias')
+                        ->where('id_familia', $d['id_familia'])
+                        ->update(['precio_autorizado' => 'N']);
+                }
             }
 
             DB::commit();
