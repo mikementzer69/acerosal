@@ -119,25 +119,6 @@
         </div>
     </div>
 
-    <div style="display:flex; gap:12px; margin-top:10px;">
-        <div class="form-group" style="flex:1;">
-            <label>Tipo de Precio</label>
-            <select name="tipo_precio" id="tipo_precio" style="background:#1f2a3a; color:#fff; padding:8px; border:1px solid #4a5568; border-radius:4px; width:100%;">
-                <option value="lista">Precio de Lista</option>
-                <option value="especial">Precio Especial</option>
-            </select>
-        </div>
-
-        <div class="form-group" style="flex:1; display:none;" id="div_motivo_precio">
-            <label>Justificación de Precio Especial</label>
-            <select name="motivo_precio" id="motivo_precio" style="background:#1f2a3a; color:#fff; padding:8px; border:1px solid #4a5568; border-radius:4px; width:100%;">
-                <option value="">Seleccione justificación...</option>
-                <option value="1">Precio autorizado por gerencia</option>
-                <option value="2">Precio igual competencia</option>
-            </select>
-        </div>
-    </div>
-
     <hr>
 
     <h4>Detalle</h4>
@@ -157,6 +138,21 @@
                     </option>
                 @endforeach
             </select>
+
+            <label style="margin-top: 15px; display: block;">Tipo de Precio</label>
+            <select name="tipo_precio" id="tipo_precio" style="background:#1f2a3a; color:#fff; padding:8px; border:1px solid #4a5568; border-radius:4px; width:100%;">
+                <option value="lista">Precio de Lista</option>
+                <option value="especial">Precio Especial</option>
+            </select>
+
+            <div id="div_motivo_precio" style="display:none; margin-top: 15px;">
+                <label>Justificación de Precio Especial</label>
+                <select name="motivo_precio" id="motivo_precio" style="background:#1f2a3a; color:#fff; padding:8px; border:1px solid #4a5568; border-radius:4px; width:100%;">
+                    <option value="">Seleccione justificación...</option>
+                    <option value="1">Precio autorizado por gerencia</option>
+                    <option value="2">Precio igual competencia</option>
+                </select>
+            </div>
         </div>
 
         <div class="form-group" style="flex:1;">
@@ -296,21 +292,15 @@ let productosLocal = [];
 
 // 0. Cambio Tipo Precio
 document.getElementById('tipo_precio').addEventListener('change', function() {
-    const val = this.value;
-    const divMotivo = document.getElementById('div_motivo_precio');
-    if(val === 'especial') {
-        divMotivo.style.display = 'block';
-    } else {
-        divMotivo.style.display = 'none';
-        document.getElementById('motivo_precio').value = '';
-    }
     actualizarPrecioDesdeFamilia();
 });
 
 function actualizarPrecioDesdeFamilia() {
     const famSel = document.getElementById('familia');
-    const tipoPrecio = document.getElementById('tipo_precio').value;
+    const tipoPrecio = document.getElementById('tipo_precio');
     const inputPrecio = document.getElementById('precio_venta_sin_iva');
+    const divMotivo = document.getElementById('div_motivo_precio');
+    const inputMotivo = document.getElementById('motivo_precio');
     
     if (famSel.selectedIndex > 0) {
         const opt = famSel.options[famSel.selectedIndex];
@@ -318,21 +308,37 @@ function actualizarPrecioDesdeFamilia() {
         const pEspecial = opt.getAttribute('data-precioespecial');
         const pAutorizado = opt.getAttribute('data-precioautorizado');
         
-        if (tipoPrecio === 'especial') {
-            if (pAutorizado === 'S') {
-                inputPrecio.value = parseFloat(pEspecial).toFixed(2);
-                document.getElementById('div_motivo_precio').style.display = 'block';
+        if (tipoPrecio.value === 'especial') {
+            const numPEspecial = parseFloat(pEspecial) || 0;
+            if (numPEspecial <= 0) {
+                inputPrecio.value = parseFloat(pLista).toFixed(2);
+                alert("Esta Calidad no tiene un Precio Especial configurado (es cero o nulo). Se aplicará el Precio de Lista.");
+                tipoPrecio.value = 'lista';
+                divMotivo.style.display = 'none';
+                inputMotivo.value = '';
+            } else if (pAutorizado === 'S') {
+                inputPrecio.value = numPEspecial.toFixed(2);
+                divMotivo.style.display = 'block';
             } else {
                 inputPrecio.value = parseFloat(pLista).toFixed(2);
                 alert("Esta Calidad no tiene el Precio Especial autorizado. Se aplicará el Precio de Lista.");
-                document.getElementById('tipo_precio').value = 'lista';
-                document.getElementById('div_motivo_precio').style.display = 'none';
+                tipoPrecio.value = 'lista';
+                divMotivo.style.display = 'none';
+                inputMotivo.value = '';
             }
         } else {
             inputPrecio.value = parseFloat(pLista).toFixed(2);
+            divMotivo.style.display = 'none';
+            inputMotivo.value = '';
         }
     } else {
         inputPrecio.value = '';
+        if (tipoPrecio.value === 'especial') {
+            alert("Por favor, seleccione primero la Calidad.");
+            tipoPrecio.value = 'lista';
+        }
+        divMotivo.style.display = 'none';
+        inputMotivo.value = '';
     }
 }
 
@@ -510,6 +516,11 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
     if(precioInp) precioInp.value = '';
     if(tolMtsVis) tolMtsVis.value = '';
     if(tolLbsVis) tolLbsVis.value = '';
+    
+    // Restaurar los campos de precio especial a su valor por defecto
+    document.getElementById('tipo_precio').value = 'lista';
+    document.getElementById('div_motivo_precio').style.display = 'none';
+    document.getElementById('motivo_precio').value = '';
 });
 
 function renderTabla() {
