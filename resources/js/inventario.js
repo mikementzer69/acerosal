@@ -309,8 +309,8 @@ if (listbox) {
             // 1. Validaciones
             const hayErrores = Object.values(lotes).some(l => l.tieneError === true);
             if (hayErrores) {
-                alert("⚠️ Hay lotes que no cuadran con el total de metros. Verifique los números en rojo.");
-                return;
+                console.warn("⚠️ Hay lotes con diferencias de metros. Se guardará con el faltante/sobrante calculado.");
+                // Se removió el alert y el return para permitir guardar con diferencia
             }
             const lotesVacios = Object.values(lotes).some(l => l.Total_Piezas === 0);
             if (lotesVacios) {

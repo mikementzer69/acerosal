@@ -19,6 +19,8 @@ class Lote extends Model
         'fecha_ingreso',
         'peso_total_libras',
         'cantidad_total_metros',
+        'diferencia_metros',
+        'diferencia_libras',
         'relacion_cantidad_peso',
         'total_piezas',
         'unidad_medida_peso',

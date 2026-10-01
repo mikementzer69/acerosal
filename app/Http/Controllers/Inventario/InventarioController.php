@@ -233,7 +233,22 @@ public function guardarAutomatico(Request $request)
                 ->max('correlativo');
             $nuevoCorrelativo = ($ultimoCorrelativo ?? 0) + 1;
 
-            // E. CREAR LOTE
+            // E. CALCULAR DIFERENCIAS ANTES DE CREAR EL LOTE
+            $piezasEsteLote = $todasLasPiezas[$idProd] ?? [];
+            $sumaMetrosReales = 0;
+            $sumaLibrasReales = 0;
+            $relacionPeso = (float) ($lote['Relacion_Cantidad_Peso'] ?? 0);
+            
+            foreach ($piezasEsteLote as $pz) {
+                $m = (float) $pz['Cantidad_Metros_Inicial'];
+                $sumaMetrosReales += $m;
+                $sumaLibrasReales += ($relacionPeso * $m);
+            }
+
+            $difMetros = (float) ($lote['Cantidad_Total_Metros'] ?? 0) - $sumaMetrosReales;
+            $difLibras = (float) ($lote['Peso_Total_Libras'] ?? 0) - $sumaLibrasReales;
+
+            // F. CREAR LOTE
             $loteModel = Lote::create([
                 'id_compra'              => $idCompra,
                 'id_empresa'             => session('idEmpresa'),
@@ -243,15 +258,16 @@ public function guardarAutomatico(Request $request)
                 'fecha_ingreso'          => $lote['Fecha_Ingreso'] ?? now(),
                 'peso_total_libras'      => (float) ($lote['Peso_Total_Libras'] ?? 0),
                 'cantidad_total_metros'  => (float) ($lote['Cantidad_Total_Metros'] ?? 0),
-                'relacion_cantidad_peso' => (float) ($lote['Relacion_Cantidad_Peso'] ?? 0),
-                'total_piezas'           => count($todasLasPiezas[$idProd] ?? []),
+                'diferencia_metros'      => $difMetros,
+                'diferencia_libras'      => $difLibras,
+                'relacion_cantidad_peso' => $relacionPeso,
+                'total_piezas'           => count($piezasEsteLote),
                 'unidad_medida_peso'     => 'LB',
                 'unidad_medida_longitud' => 'M',
                 'eliminado'              => 0,
             ]);
 
-            // F. CREAR PIEZAS Y KARDEX
-            $piezasEsteLote = $todasLasPiezas[$idProd] ?? [];
+            // G. CREAR PIEZAS Y KARDEX
             $itPieza = 1;
 
             foreach ($piezasEsteLote as $pieza) {
@@ -296,9 +312,8 @@ public function guardarAutomatico(Request $request)
                 $itPieza++;
             }
 
-            // G. ACTUALIZACIÓN DEL STOCK EN PRODUCTO
-            $pesoNuevoLote      = (float) ($lote['Peso_Total_Libras'] ?? 0);
-            $metrosNuevoLote    = (float) ($lote['Cantidad_Total_Metros'] ?? 0);
+            // H. ACTUALIZACIÓN DEL STOCK EN PRODUCTO
+            // USAMOS LOS VALORES REALES (LO FÍSICO) PARA EL KARDEX Y MAESTRO, NO LO FACTURADO
             $cantidadPiezasLote = count($piezasEsteLote);
 
             DB::table('productos')
@@ -306,8 +321,8 @@ public function guardarAutomatico(Request $request)
                 ->where('id_empresa', session('idEmpresa'))
                 ->update([
                     'stock_actual'      => DB::raw("stock_actual + $cantidadPiezasLote"),
-                    'stock_metros'      => DB::raw("stock_metros + $metrosNuevoLote"),
-                    'peso_total_libras' => DB::raw("peso_total_libras + $pesoNuevoLote"),
+                    'stock_metros'      => DB::raw("stock_metros + $sumaMetrosReales"),
+                    'peso_total_libras' => DB::raw("peso_total_libras + $sumaLibrasReales"),
                 ]);
         }
 
