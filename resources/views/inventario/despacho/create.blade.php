@@ -186,8 +186,12 @@
         </div>
 
         <div class="form-group" style="flex:1;">
-            <label>Pieza</label>
-            <select id="pieza" disabled></select>
+            <label>Pieza (Opcional) / Nº Cortes</label>
+            <div style="display:flex; gap:5px;">
+                <select id="pieza" disabled style="flex:1;"></select>
+                <input type="number" id="cantidad_piezas_auto" placeholder="Cortes" title="Dejar vacío para auto-completar un Total, o escribir cantidad para Múltiples Cortes" min="1" style="width:70px; background-color:#1f2a3a; color:#fff; border:1px solid #4a5568; padding:5px; border-radius:4px;">
+            </div>
+            <div id="hint_extraccion" style="color: #4ade80; font-size: 11px; margin-top: 5px; height: 14px;"></div>
         </div>
 
         <div class="form-group" style="flex:1;">
@@ -486,6 +490,7 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
     const productoSel = document.getElementById('producto');
     const loteSel = document.getElementById('lote');
     const piezaSel = document.getElementById('pieza');
+    const cantidadCortes = parseInt(document.getElementById('cantidad_piezas_auto').value) || 0;
     const cantidadInp = document.getElementById('cantidad');
     const pesoInp = document.getElementById('peso');
     const tolMtsVis = document.getElementById('tolerancia_visual');
@@ -499,22 +504,123 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
         return;
     }
 
-    detalles.push({
-        id_familia: familiaSel.value,
-        id_producto: productoSel.value,
-        id_lote: loteSel.value,
-        id_pieza: piezaSel.value,
-        medida_solicitada: medidaSolicitadaInp.value,
-        cantidad_metros: parseFloat(cantidadInp.value),
-        merma_mts: parseFloat(tolMtsVis.value) || 0,
-        merma_lbs: parseFloat(tolLbsVis.value) || 0,
-        cantidad_libras: parseFloat(pesoInp.value) || 0,
-        precio_venta_sin_iva: parseFloat(precioInp.value) || 0,
-        tipo_precio: tipoPrecioInp.value
+    let piezasToAdd = [];
+    let cantidadMetros = parseFloat(cantidadInp.value);
+    let modoCortes = cantidadCortes > 0;
+    let isAutoMode = (piezaSel.selectedIndex === 0 || !piezaSel.value);
+    
+    // 1. Preparar lista de piezas disponibles (restando los metros que ya están en la tabla)
+    let availablePieces = [];
+    
+    if (isAutoMode) {
+        // Modo Auto: usar todas las piezas del lote
+        for (let i = 1; i < piezaSel.options.length; i++) {
+            let opt = piezaSel.options[i];
+            let usedMetros = detalles.filter(d => d.id_pieza == opt.value)
+                                     .reduce((sum, d) => sum + d.cantidad_metros, 0);
+            let available = (parseFloat(opt.getAttribute('data-metros')) || 0) - usedMetros;
+            
+            if (available > 0.0001) {
+                availablePieces.push({
+                    id: opt.value,
+                    label: opt.text.split(' — ')[0],
+                    available: available
+                });
+            }
+        }
+    } else {
+        // Modo Manual: solo usar la pieza específica que seleccionó el usuario
+        let opt = piezaSel.options[piezaSel.selectedIndex];
+        let usedMetros = detalles.filter(d => d.id_pieza == opt.value)
+                                 .reduce((sum, d) => sum + d.cantidad_metros, 0);
+        let available = (parseFloat(opt.getAttribute('data-metros')) || 0) - usedMetros;
+        
+        if (available > 0.0001) {
+            availablePieces.push({
+                id: opt.value,
+                label: opt.text.split(' — ')[0],
+                available: available
+            });
+        } else {
+            alert('La pieza seleccionada ya no tiene metros disponibles (ya se ocuparon en la tabla).');
+            return;
+        }
+    }
+
+    if (availablePieces.length === 0) {
+        alert('No hay piezas con metros disponibles en este lote para agregar.');
+        return;
+    }
+
+    // 2. Aplicar la lógica según la intención del usuario
+    if (modoCortes) {
+        // MODO CORTES MÚLTIPLES: Queremos `cantidadCortes` cortes, cada uno de `cantidadMetros`
+        let cortesFaltantes = cantidadCortes;
+        
+        for (let p of availablePieces) {
+            // Mientras esta pieza tenga suficiente para al menos 1 corte más
+            // Usamos un pequeño margen para los errores de punto flotante
+            while (cortesFaltantes > 0 && p.available >= (cantidadMetros - 0.0001)) {
+                piezasToAdd.push({ id: p.id, label: p.label, dispatch: cantidadMetros });
+                p.available -= cantidadMetros;
+                cortesFaltantes--;
+            }
+            if (cortesFaltantes === 0) break;
+        }
+        
+        if (cortesFaltantes > 0) {
+            alert(`ATENCIÓN: Solo se pudieron obtener ${cantidadCortes - cortesFaltantes} cortes de ${cantidadMetros}m. No hay piezas suficientes para los ${cantidadCortes} cortes solicitados.`);
+            if (piezasToAdd.length === 0) return;
+        }
+    } else {
+        // MODO ALCANZAR TOTAL: Queremos un total general de `cantidadMetros`
+        let metrosFaltantes = cantidadMetros;
+        
+        for (let p of availablePieces) {
+            if (metrosFaltantes <= 0.0001) break;
+            
+            let dispatchMetros = Math.min(metrosFaltantes, p.available);
+            piezasToAdd.push({ id: p.id, label: p.label, dispatch: dispatchMetros });
+            p.available -= dispatchMetros;
+            metrosFaltantes -= dispatchMetros;
+        }
+        
+        if (metrosFaltantes > 0.0001) {
+            let cubiertos = cantidadMetros - metrosFaltantes;
+            alert(`ATENCIÓN: Con las piezas disponibles solo se alcanzan a cubrir ${cubiertos.toFixed(4)} metros de los ${cantidadMetros} solicitados.`);
+            if (piezasToAdd.length === 0) return;
+        }
+    }
+
+    // Agregar todas las piezas recolectadas al detalle recalculando peso y mermas por cada porción
+    const factorProducto = parseFloat(productoSel.options[productoSel.selectedIndex].getAttribute('data-factor')) || 0;
+    const tolMtsProducto = parseFloat(productoSel.options[productoSel.selectedIndex].getAttribute('data-tolerancia')) || 0;
+
+    piezasToAdd.forEach(piezaObj => {
+        let dMetros = piezaObj.dispatch;
+        let dTolMts = tolMtsProducto;
+        let dTolLbs = dTolMts * factorProducto;
+        let dPeso = (dMetros + dTolMts) * factorProducto;
+
+        detalles.push({
+            id_familia: familiaSel.value,
+            id_producto: productoSel.value,
+            id_lote: loteSel.value,
+            id_pieza: piezaObj.id,
+            codigo_pieza: piezaObj.label, // Para mostrarlo bonito en la tabla
+            medida_solicitada: medidaSolicitadaInp.value,
+            cantidad_metros: dMetros,
+            merma_mts: dTolMts,
+            merma_lbs: dTolLbs,
+            cantidad_libras: dPeso,
+            precio_venta_sin_iva: parseFloat(precioInp.value) || 0,
+            tipo_precio: tipoPrecioInp.value
+        });
     });
 
     renderTabla();
     cantidadInp.value = ''; pesoInp.value = ''; medidaSolicitadaInp.value = '';
+    document.getElementById('cantidad_piezas_auto').value = '';
     if(precioInp) precioInp.value = '';
     if(tolMtsVis) tolMtsVis.value = '';
     if(tolLbsVis) tolLbsVis.value = '';
@@ -535,7 +641,7 @@ function renderTabla() {
                 <td>${d.id_producto}</td>
                 <td style="color: #60a5fa; font-style: italic;">${d.medida_solicitada ? d.medida_solicitada : '-'}</td>
                 <td>${d.id_lote}</td>
-                <td>${d.id_pieza}</td>
+                <td>${d.codigo_pieza ? d.codigo_pieza : d.id_pieza}</td>
                 <td style="text-align:right;">${d.cantidad_metros.toFixed(2)}</td>
                 <td style="text-align:right; color: #ffc107;">+ ${d.merma_mts.toFixed(4)}</td>
                 <td style="text-align:right; color: #ffc107;">+ ${d.merma_lbs.toFixed(4)}</td>
@@ -577,6 +683,33 @@ function calcularPeso() {
 
 document.getElementById('cantidad').addEventListener('input', calcularPeso);
 
+// Hint dinámico para el modo de extracción
+function actualizarHintExtraccion() {
+    const cantCortesStr = document.getElementById('cantidad_piezas_auto').value;
+    const cantCortes = parseInt(cantCortesStr) || 0;
+    const cantMetros = parseFloat(document.getElementById('cantidad').value) || 0;
+    const hintDiv = document.getElementById('hint_extraccion');
+    const piezaSel = document.getElementById('pieza');
+    
+    if (cantMetros <= 0) {
+        hintDiv.innerText = '';
+        return;
+    }
+
+    let textoPieza = (piezaSel.selectedIndex > 0 && piezaSel.value) ? 'de la pieza seleccionada' : 'de las piezas disponibles';
+
+    if (cantCortes > 0) {
+        let total = (cantCortes * cantMetros).toFixed(4);
+        hintDiv.innerHTML = `<span style="color: #ffc107;">Modo Cortes:</span> Se extraerán <b>${cantCortes} cortes</b> de ${cantMetros}m c/u (Total: ${total}m) ${textoPieza}.`;
+    } else {
+        hintDiv.innerHTML = `<span style="color: #4ade80;">Modo Alcanzar Total:</span> Se buscarán <b>${cantMetros}m en total</b> usando las piezas necesarias.`;
+    }
+}
+
+document.getElementById('cantidad_piezas_auto').addEventListener('input', actualizarHintExtraccion);
+document.getElementById('cantidad').addEventListener('input', actualizarHintExtraccion);
+document.getElementById('pieza').addEventListener('change', actualizarHintExtraccion);
+
 // Conversor
 document.addEventListener('DOMContentLoaded', function() {
     const cantAux = document.getElementById('cant_aux');
@@ -596,6 +729,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     cantAux.addEventListener('input', ejecutarConversion);
     unidAux.addEventListener('change', ejecutarConversion);
+});
+
+// Prevenir que Enter envíe el formulario accidentalmente
+document.getElementById('formDespacho').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault(); // Evitar el submit por defecto
+        
+        // Si están en un input del área de detalle, que actúe como hacer clic en "Agregar línea"
+        const targetId = e.target.id;
+        const inputsDetalle = [
+            'familia', 'producto', 'lote', 'pieza', 'cantidad_piezas_auto', 
+            'cantidad', 'cant_aux', 'unid_aux', 'medida_solicitada', 'tipo_precio', 'motivo_precio'
+        ];
+        
+        if (inputsDetalle.includes(targetId) || e.target.tagName.toLowerCase() === 'input') {
+            // Solo disparar si la cantidad de piezas/metros no está vacía (para evitar spam)
+            if (document.getElementById('cantidad').value !== '' || document.getElementById('cantidad_piezas_auto').value !== '') {
+                document.getElementById('agregarDetalle').click();
+            }
+        }
+    }
 });
 
 // 6. Envío Formulario AJAX
