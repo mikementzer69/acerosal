@@ -168,7 +168,7 @@
             </td>
 <td>
             <div class="fw-bold text-dark" style="font-size: 0.9rem;">
-                {{ $m->familia_nombre }} - {{ $m->producto_nombre }}
+                {{ $m->producto_nombre }}
             </div>
 
             {{-- Lógica de medidas en naranja --}}

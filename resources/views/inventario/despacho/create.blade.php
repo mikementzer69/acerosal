@@ -1,8 +1,41 @@
 @extends('layouts.app')
 
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 @section('content')
 
 <style>
+/* Ajuste de Select2 para el tema oscuro */
+.select2-container--default .select2-selection--single {
+    background-color: #1f2a3a !important;
+    border: 1px solid #4a5568 !important;
+    height: 38px !important;
+    color: white !important;
+    border-radius: 4px;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: white !important;
+    line-height: 36px !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px !important;
+}
+.select2-dropdown {
+    background-color: #1f2a3a !important;
+    border: 1px solid #4a5568 !important;
+    color: white !important;
+}
+.select2-search__field {
+    background-color: #2d3a4f !important;
+    color: white !important;
+    border: 1px solid #4a5568 !important;
+}
+.select2-results__option--highlighted[aria-selected] {
+    background-color: #3b82f6 !important;
+}
+
 /* Tabla detalle despacho */
 #tablaDetalle {
     background: #1f2a3a;
@@ -98,7 +131,7 @@
     <div style="display:flex; gap:12px; margin-top:10px;">
         <div class="form-group" style="flex:1;">
             <label>Cliente</label>
-            <select name="id_cliente">
+            <select name="id_cliente" style="width: 100%;">
                 <option value="">Seleccione cliente</option>
                 @foreach($clientes as $c)
                     <option value="{{ $c->id_cliente }}">{{ $c->nombre }}</option>
@@ -773,6 +806,13 @@ document.getElementById('formDespacho').addEventListener('submit', function(e) {
         }
     })
     .catch(() => { btn.disabled = false; });
+});
+
+$(document).ready(function() {
+    $('select[name="id_cliente"]').select2({
+        placeholder: '-- Buscar cliente por nombre --',
+        allowClear: true
+    });
 });
 </script>
 
