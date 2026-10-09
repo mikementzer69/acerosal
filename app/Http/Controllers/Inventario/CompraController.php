@@ -96,6 +96,7 @@ class CompraController extends Controller
     {
         $compras = Compra::where('id_empresa', session('idEmpresa')) // 🔐 Filtro de seguridad
             ->orderBy('fecha_ingreso', 'desc')
+            ->orderBy('id_compra', 'desc')
             ->get();
 
         $borradores = CompraBorrador::where('id_usuario', session('idUsuario'))

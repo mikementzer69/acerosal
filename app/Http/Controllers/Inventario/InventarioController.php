@@ -66,6 +66,7 @@ class InventarioController extends Controller
         $comprasNuevas = Compra::where('eliminado', 0)
             ->where('id_empresa', session('idEmpresa'))
             ->orderBy('fecha_ingreso', 'desc')
+            ->orderBy('id_compra', 'desc')
             ->get();
 
         return view('inventario.automatico', compact('comprasNuevas'));

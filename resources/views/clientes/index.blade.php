@@ -142,7 +142,7 @@
     <div class="erp-pagination">
         {{-- Solo mostramos los links si $clientes es un objeto paginado --}}
         @if($clientes instanceof \Illuminate\Pagination\LengthAwarePaginator)
-            {{ $clientes->withQueryString()->links() }}
+            {{ $clientes->withQueryString()->links('pagination::bootstrap-5') }}
         @endif
     </div>
 
