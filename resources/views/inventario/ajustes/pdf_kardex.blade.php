@@ -86,7 +86,7 @@
                 <td class="text-end">{{ number_format($m->cantidad, 2) }}</td>
                 <td class="text-end" style="color: #b45309;">{{ number_format($m->tolerancia_aplicada ?? 0, 4) }}</td>
                 <td class="text-end" style="color: #2563eb; font-weight: bold;">
-                    {{ number_format(($m->peso_neto_libras ?? 0) + ($m->merma_libras_grabada ?? 0), 2) }}
+                    {{ number_format(($m->peso_neto_libras ?? $m->peso ?? 0) + ($m->merma_libras_grabada ?? 0), 2) }}
                 </td>
                 <td class="text-end" style="font-weight: bold;">
                     {{ number_format($m->cantidad_total_retirada ?? $m->cantidad, 4) }}

@@ -209,7 +209,7 @@
 
             {{-- Peso Neto en Libras (El 15.60 o 10.40) --}}
             <td class="text-end text-info fw-bold">
-            {{ number_format(($m->peso_neto_libras ?? 0) + ($m->merma_libras_grabada ?? 0), 2) }}
+            {{ number_format(($m->peso_neto_libras ?? $m->peso ?? 0) + ($m->merma_libras_grabada ?? 0), 2) }}
             </td>
 
             {{-- Total Retirado (Metros + Merma) --}}
