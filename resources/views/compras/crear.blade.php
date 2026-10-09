@@ -344,13 +344,35 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         console.log("¡BOTÓN PRESIONADO!");
 
-        // A. Validar productos mínimos
+        // A. Validar productos mínimos y que estén seleccionados
         const filasProductos = document.querySelectorAll('#contenedorFamilias table tbody tr');
         if (filasProductos.length === 0) {
             Swal.fire({
                 icon: 'error',
                 title: 'Formulario Incompleto',
                 text: 'Debes agregar al menos un producto a la compra.',
+                background: '#1f2937', color: '#fff'
+            });
+            return;
+        }
+
+        let productoFaltante = false;
+        filasProductos.forEach(tr => {
+            const selectProd = tr.querySelector('.producto-select');
+            if (selectProd && selectProd.value === '') {
+                productoFaltante = true;
+                selectProd.style.border = "2px solid #f87171";
+            } else if (selectProd) {
+                selectProd.style.border = "1px solid #ccc";
+            }
+        });
+
+        if (productoFaltante) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Producto no seleccionado',
+                text: 'Asegúrate de haber seleccionado un producto válido en todas las filas. Si la lista está vacía, debes crear productos para esta empresa primero.',
+                confirmButtonText: 'Revisar', confirmButtonColor: '#f59e0b',
                 background: '#1f2937', color: '#fff'
             });
             return;

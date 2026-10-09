@@ -224,10 +224,13 @@ class CompraController extends Controller
 
             $totalKG = 0; $totalLB = 0; $totalEU = 0; $totalUSD = 0;
             $productosPorFamilia = [];
+            $productosProcesados = 0;
 
             // B. PROCESAR PRODUCTOS
             for ($i = 0; $i < count($request->id_producto); $i++) {
                 if (!$request->id_producto[$i]) continue;
+                
+                $productosProcesados++;
 
                 $idProd = $request->id_producto[$i];
                 $idFam  = $request->familia_producto[$i];
@@ -263,6 +266,10 @@ class CompraController extends Controller
                 $productosPorFamilia[$idFam]['eur'] += $eu;
                 $productosPorFamilia[$idFam]['usd'] += $usd;
                 $productosPorFamilia[$idFam]['cantidad'] += $cant;
+            }
+
+            if ($productosProcesados === 0) {
+                throw new \Exception("No se procesó ningún producto válido. Asegúrese de haber seleccionado un producto de la lista (verifique que existan productos en esta empresa).");
             }
 
             // C. COSTOS ADICIONALES
