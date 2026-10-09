@@ -62,6 +62,29 @@ class LoginController extends Controller
         return redirect('/dashboard');
     }
 
+    public function cambiarEmpresa(Request $request)
+    {
+        $request->validate([
+            'nueva_empresa' => 'required'
+        ]);
+
+        $empresa = DB::table('empresas')
+            ->where('id_empresa', $request->nueva_empresa)
+            ->where('inactivo', 0)
+            ->first();
+
+        if ($empresa) {
+            Session::put('idEmpresa', $empresa->id_empresa);
+            Session::put('nombreEmpresa', $empresa->nombre);
+            // Si quieres redirigir siempre al dashboard para "reiniciar" el contexto:
+            return redirect('/dashboard')->with('success', 'Has cambiado a la empresa: ' . $empresa->nombre);
+            // Si prefieres que se quede en la misma pantalla:
+            // return back()->with('success', 'Has cambiado a la empresa: ' . $empresa->nombre);
+        }
+
+        return back()->with('error', 'Empresa no válida');
+    }
+
     public function logout()
     {
         Session::flush();

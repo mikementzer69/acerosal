@@ -36,6 +36,7 @@ Route::get('/demo-contabilidad', [DemoContabilidadController::class, 'generarDem
 Route::get('/login', [LoginController::class, 'mostrarLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'procesarLogin']);
 Route::get('/logout', [LoginController::class, 'logout']);
+Route::post('/cambiar-empresa', [LoginController::class, 'cambiarEmpresa'])->name('cambiar.empresa');
 
 
 Route::middleware('auth.custom')->group(function () {

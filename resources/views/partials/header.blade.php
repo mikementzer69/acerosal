@@ -10,9 +10,18 @@
         <div class="header-center">
             <h1 class="header-title">ERP GRUPO ACEROSAL</h1>
 
-            <div class="header-subtitle">
+            <div class="header-subtitle" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
                 Empresa:
-                <strong>{{ session('nombreEmpresa') }}</strong>
+                <form action="{{ route('cambiar.empresa') }}" method="POST" style="margin: 0; display: inline-block;">
+                    @csrf
+                    <select name="nueva_empresa" onchange="this.form.submit()" style="background-color: #2d3a4f; border: 1px solid #4a5568; color: #fff; border-radius: 4px; padding: 2px 8px; font-weight: bold; cursor: pointer; font-size: 0.9em; outline: none;">
+                        @foreach(\Illuminate\Support\Facades\DB::table('empresas')->where('inactivo', 0)->orderBy('nombre', 'asc')->get() as $emp)
+                            <option value="{{ $emp->id_empresa }}" {{ session('idEmpresa') == $emp->id_empresa ? 'selected' : '' }}>
+                                {{ $emp->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
             </div>
         </div>
 
