@@ -34,6 +34,10 @@
 
 /* Paginación estilo Dark */
 .pagination {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
     margin-top: 20px;
     justify-content: center; /* Centramos los números */
     gap: 5px;
@@ -46,6 +50,8 @@
     padding: 8px 16px;
     border-radius: 6px !important;
     transition: all 0.2s;
+    text-decoration: none !important;
+    display: block;
 }
 
 .page-item.active .page-link {
