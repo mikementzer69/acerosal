@@ -575,7 +575,34 @@ Route::get('/reparar-stock', function () {
         'mensaje' => '¡Sincronización completada con éxito!',
         'detalles' => $resultados
     ]);
+});
 
+// --- RUTA TEMPORAL DE EMERGENCIA PARA DESTRABAR BASE DE DATOS ---
+Route::get('/limpiar-bd', function () {
+    try {
+        $procesos = DB::select('SHOW PROCESSLIST');
+        $matados = 0;
+        $detalles = [];
 
+        foreach($procesos as $p) {
+            // Matar procesos que llevan más de 15 segundos colgados y que no sean esta misma conexión
+            if($p->Time > 15 && $p->Id != DB::select('SELECT CONNECTION_ID() as id')[0]->id) { 
+                DB::statement("KILL {$p->Id}"); 
+                $matados++;
+                $detalles[] = "Proceso {$p->Id} (Comando: {$p->Command}, Tiempo: {$p->Time}s) eliminado.";
+            }
+        }
 
+        return response()->json([
+            'status' => 'success',
+            'mensaje' => "¡Operación exitosa! Se han eliminado $matados procesos atascados.",
+            'detalles' => $detalles
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'mensaje' => 'No se pudo limpiar la base de datos.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
 });
