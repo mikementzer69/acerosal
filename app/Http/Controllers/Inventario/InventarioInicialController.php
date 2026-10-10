@@ -218,6 +218,31 @@ class InventarioInicialController extends Controller
             $filaCount = 0;
             $piezasCreadas = 0;
 
+            // --- OPTIMIZACIÓN: Pre-calcular Correlativos de Lotes fuera del bucle ---
+            $codigosExistentes = DB::table('lotes')
+                ->where('id_empresa', session('idEmpresa'))
+                ->where('codigo', 'LIKE', 'INI-%')
+                ->pluck('codigo');
+
+            $maxNumeroIni = $codigosExistentes->map(function ($codigo) {
+                return (int) substr($codigo, 4);
+            })->max();
+            $siguienteNumeroLote = $maxNumeroIni ? ($maxNumeroIni + 1) : 1;
+
+            $ultimoCorrelativoDB = DB::table('lotes')
+                ->where('id_empresa', session('idEmpresa'))
+                ->max('correlativo');
+            $nuevoCorrelativoLote = $ultimoCorrelativoDB ? ($ultimoCorrelativoDB + 1) : 1;
+
+            // Caché de productos para evitar miles de consultas repetidas a BD
+            $productosCache = [];
+
+            // Arrays para inserción masiva (Batch Insert)
+            $piezasBatch = [];
+            $kardexBatch = [];
+            // Arrays para sumar stock de forma agrupada
+            $stockUpdates = [];
+
             while (($datos = fgetcsv($handle, 1000, ",")) !== FALSE) {
                 $filaCount++;
                 
@@ -231,35 +256,27 @@ class InventarioInicialController extends Controller
                 // Si el encabezado u omitir línea vacía
                 if(empty($codigo_producto) || $cantidad_metros <= 0 || $numero_piezas <= 0) continue;
 
-                // 1. Búsqueda del Producto
-                $infoProducto = DB::table('productos')
-                    ->where('codigo', $codigo_producto)
-                    ->where('id_empresa', session('idEmpresa'))
-                    ->where('eliminado', 0)
-                    ->first();
+                // 1. Búsqueda del Producto (Memoized)
+                if (!isset($productosCache[$codigo_producto])) {
+                    $productosCache[$codigo_producto] = DB::table('productos')
+                        ->where('codigo', $codigo_producto)
+                        ->where('id_empresa', session('idEmpresa'))
+                        ->where('eliminado', 0)
+                        ->first();
+                }
+                $infoProducto = $productosCache[$codigo_producto];
 
                 if (!$infoProducto) {
                     throw new \Exception("Fila {$filaCount}: El producto con código '{$codigo_producto}' no existe o no pertenece a su empresa.");
                 }
 
                 // 2. Correlativo Lote para el código (INI-XXX)
-                $codigosExistentes = DB::table('lotes')
-                    ->where('id_empresa', session('idEmpresa'))
-                    ->where('codigo', 'LIKE', 'INI-%')
-                    ->pluck('codigo');
-
-                $maxNumeroIni = $codigosExistentes->map(function ($codigo) {
-                    return (int) substr($codigo, 4);
-                })->max();
-
-                $siguienteNumero = $maxNumeroIni ? ($maxNumeroIni + 1) : 1;
-                $codigoLoteFinal = 'INI-' . str_pad($siguienteNumero, 3, '0', STR_PAD_LEFT);
+                $codigoLoteFinal = 'INI-' . str_pad($siguienteNumeroLote, 3, '0', STR_PAD_LEFT);
+                $siguienteNumeroLote++;
 
                 // 3. Correlativo interno Lote
-                $ultimoCorrelativo = DB::table('lotes')
-                    ->where('id_empresa', session('idEmpresa'))
-                    ->max('correlativo');
-                $nuevoCorrelativo = $ultimoCorrelativo ? ($ultimoCorrelativo + 1) : 1;
+                $nuevoCorrelativo = $nuevoCorrelativoLote;
+                $nuevoCorrelativoLote++;
 
                 // 4. Totales
                 $totalMetros = $cantidad_metros * $numero_piezas;
@@ -338,17 +355,31 @@ class InventarioInicialController extends Controller
                     $piezasCreadas++;
                 }
 
-                // 7. Actualizar Stock Maestro
-                DB::table('productos')
-                    ->where('id_producto', $infoProducto->id_producto)
-                    ->where('id_empresa', session('idEmpresa'))
-                    ->update([
-                        'stock_metros'      => DB::raw("stock_metros + $totalMetros"),
-                        'peso_total_libras' => DB::raw("peso_total_libras + $totalLibras"),
-                        'stock_actual'      => DB::raw("stock_actual + $numero_piezas")
-                    ]);
+                // 7. Acumular totales de productos (se actualizará después del bucle)
+                if (!isset($stockUpdates[$infoProducto->id_producto])) {
+                    $stockUpdates[$infoProducto->id_producto] = [
+                        'stock_metros' => 0,
+                        'peso_total_libras' => 0,
+                        'stock_actual' => 0
+                    ];
+                }
+                $stockUpdates[$infoProducto->id_producto]['stock_metros'] += $totalMetros;
+                $stockUpdates[$infoProducto->id_producto]['peso_total_libras'] += $totalLibras;
+                $stockUpdates[$infoProducto->id_producto]['stock_actual'] += $numero_piezas;
             }
             fclose($handle);
+
+            // ACTUALIZACIÓN DE PRODUCTOS EN BATCH
+            foreach ($stockUpdates as $id_prod => $sumas) {
+                DB::table('productos')
+                    ->where('id_producto', $id_prod)
+                    ->where('id_empresa', session('idEmpresa'))
+                    ->update([
+                        'stock_metros'      => DB::raw("stock_metros + {$sumas['stock_metros']}"),
+                        'peso_total_libras' => DB::raw("peso_total_libras + {$sumas['peso_total_libras']}"),
+                        'stock_actual'      => DB::raw("stock_actual + {$sumas['stock_actual']}")
+                    ]);
+            }
 
             if($piezasCreadas === 0) {
                 throw new \Exception("El archivo CSV estaba vacío o no contenía datos con el formato correcto.");
