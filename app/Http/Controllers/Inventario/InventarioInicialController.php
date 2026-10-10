@@ -243,11 +243,14 @@ class InventarioInicialController extends Controller
             // Arrays para sumar stock de forma agrupada
             $stockUpdates = [];
 
-            while (($datos = fgetcsv($handle, 1000, ",")) !== FALSE) {
+            while (($datos = fgetcsv($handle, 1000, ";")) !== FALSE) {
                 $filaCount++;
                 
-                // Si la fila no tiene al menos 3 columnas, saltamos
-                if (count($datos) < 3) continue;
+                // Si la fila no tiene al menos 3 columnas, intentamos con coma por si acaso
+                if (count($datos) < 3) {
+                    $datos = explode(",", implode(";", $datos));
+                    if(count($datos) < 3) continue;
+                }
 
                 $codigo_producto = trim($datos[0]);
                 $cantidad_metros = floatval($datos[1]);
