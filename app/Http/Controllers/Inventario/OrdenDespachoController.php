@@ -48,8 +48,8 @@ class OrdenDespachoController extends Controller
             ->orderBy('nombre')
             ->get();
 
-        // Correlativo orden por empresa
-        $ultimoId = OrdenDespacho::where('id_empresa', session('idEmpresa'))->max('id_orden_despacho') ?? 0;
+        // Correlativo orden global (para evitar conflictos de clave única entre empresas)
+        $ultimoId = OrdenDespacho::max('id_orden_despacho') ?? 0;
         $numeroOrden = 'OD-' . str_pad($ultimoId + 1, 6, '0', STR_PAD_LEFT);
 
         return view('inventario.despacho.create', compact(
