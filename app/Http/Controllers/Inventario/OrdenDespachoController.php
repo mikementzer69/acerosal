@@ -127,6 +127,20 @@ class OrdenDespachoController extends Controller
 
                 $pesoRealDescontado = floatval($d['cantidad_libras'] ?? 0);
 
+                // --- SEGURO DE VIDA PARA EL PRECIO ---
+                $precioVenta = floatval($d['precio_venta_sin_iva'] ?? 0);
+                if ($precioVenta <= 0) {
+                    $famInfo = DB::table('familias')->where('id_familia', $d['id_familia'])->first();
+                    if ($famInfo) {
+                        $tipoPrecio = $d['tipo_precio'] ?? 'lista';
+                        if ($tipoPrecio === 'especial' && floatval($famInfo->precio_especial) > 0 && $famInfo->precio_autorizado === 'S') {
+                            $precioVenta = floatval($famInfo->precio_especial);
+                        } else {
+                            $precioVenta = floatval($famInfo->precio_lista ?? 0);
+                        }
+                    }
+                }
+
                 // D. GUARDAR DETALLE
                 DB::table('ordenes_despacho_detalle')->insert([
                     'id_orden_despacho' => $orden->id_orden_despacho,
@@ -139,7 +153,7 @@ class OrdenDespachoController extends Controller
                     'cantidad_libras'   => $pesoRealDescontado,
                     'merma_metros'      => $tolerancia,
                     'merma_libras'      => floatval($d['merma_lbs'] ?? 0),
-                    'precio_venta_sin_iva' => floatval($d['precio_venta_sin_iva'] ?? 0),
+                    'precio_venta_sin_iva' => $precioVenta,
                     'id_empresa'        => session('idEmpresa'),
                     'created_at'        => now(),
                     'updated_at'        => now()
@@ -176,7 +190,7 @@ class OrdenDespachoController extends Controller
                     'merma_libras_grabada'   => $d['merma_lbs'],
                     'cantidad_total_retirada'=> $cantidadTotalSalida,
                     'peso'                   => $pesoRealDescontado,
-                    'precio_venta_sin_iva'   => floatval($d['precio_venta_sin_iva'] ?? 0),
+                    'precio_venta_sin_iva'   => $precioVenta,
                     'saldo_metros'           => $nuevoSaldoMetros,
                     'saldo_libras'           => $nuevoSaldoLibras,
                     'fecha'                  => now(),
