@@ -618,7 +618,7 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
             metrosFaltantes -= dispatchMetros;
         }
         
-        if (metrosFaltantes > 0.0001) {
+        if (metrosFaltantes > 0.01) {
             let cubiertos = cantidadMetros - metrosFaltantes;
             alert(`ATENCIÓN: Con las piezas disponibles solo se alcanzan a cubrir ${cubiertos.toFixed(4)} metros de los ${cantidadMetros} solicitados.`);
             if (piezasToAdd.length === 0) return;
@@ -632,6 +632,21 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
     piezasToAdd.forEach(piezaObj => {
         let dMetros = piezaObj.dispatch;
         let dTolMts = tolMtsProducto;
+        
+        // Obtener lo disponible de la pieza restando lo que ya estaba en la tabla
+        let optOriginal = Array.from(piezaSel.options).find(o => o.value == piezaObj.id);
+        let disponibleOriginal = optOriginal ? parseFloat(optOriginal.getAttribute('data-metros')) || 0 : 0;
+        let usedMetros = detalles.filter(d => d.id_pieza == piezaObj.id).reduce((sum, d) => sum + d.cantidad_metros, 0);
+        let disponibleActual = disponibleOriginal - usedMetros;
+        
+        // Lógica idéntica a la del controlador para anular/reducir la tolerancia si es completo
+        let cantidadTotalSalida = dMetros + dTolMts;
+        if (cantidadTotalSalida > disponibleActual) {
+            cantidadTotalSalida = disponibleActual;
+            dTolMts = cantidadTotalSalida - dMetros;
+            if (dTolMts < 0) dTolMts = 0;
+        }
+
         let dTolLbs = dTolMts * factorProducto;
         let dPeso = (dMetros + dTolMts) * factorProducto;
 
