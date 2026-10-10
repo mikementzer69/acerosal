@@ -44,7 +44,6 @@ class OrdenDespachoController extends Controller
         // Vendedores filtrados por empresa (usuarios con rol = 2)
         $vendedores = DB::table('usuarios')
             ->where('id_empresa', session('idEmpresa'))
-            ->where('id_rol', 2)
             ->where('inactivo', 0)
             ->orderBy('nombre')
             ->get();
@@ -80,7 +79,7 @@ class OrdenDespachoController extends Controller
                 'numero_orden'  => $request->numero_orden,
                 'fecha'         => $request->fecha,
                 'id_cliente'    => $request->id_cliente,
-                'id_usuario'    => session('idUsuario'),
+                'id_usuario'    => $request->id_usuario ?? session('idUsuario'),
                 'estado'        => 'FINALIZADA',
                 'facturado'     => 0,
                 'observaciones' => $request->observaciones ?? null,

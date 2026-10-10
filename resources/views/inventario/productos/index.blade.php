@@ -230,18 +230,14 @@
 
     {{-- PAGINACIÓN --}}
     <div class="erp-pagination">
-        {!! str_replace(
-            ['Showing', 'to', 'of', 'results', 'Previous', 'Next'],
-            ['Mostrando', 'al', 'de', 'resultados', 'Anterior', 'Siguiente'],
-            $productos->appends([
+        {!! $productos->appends([
                 'codigo'      => $codigo,
                 'descripcion' => $descripcion,
                 'id_familia'  => $idfamilia,
                 'id_ubicacion'=> $idUbicacion,
             ])
             ->onEachSide(1)
-            ->links()
-        ) !!}
+            ->links() !!}
     </div>
 
 </div>

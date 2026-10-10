@@ -45,7 +45,7 @@
                         <td class="fw-bold">{{ $o->numero_orden }}</td>
                         <td style="text-align:center;">{{ \Carbon\Carbon::parse($o->fecha)->format('d/m/Y') }}</td>
                         <td>{{ $o->cliente->nombre ?? '-' }}</td>
-                        <td>{{ $o->vendedor->name ?? '-' }}</td>
+                        <td>{{ $o->vendedor->nombre ?? '-' }}</td>
                         <td style="text-align:center;">
                             @php
                                 $color = match($o->estado) {
