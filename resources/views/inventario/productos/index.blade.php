@@ -102,7 +102,7 @@
 
             <div>
                 <label>Calidad:</label>
-                <select name="familia" class="search-input">
+                <select name="id_familia" class="search-input">
                     <option value="">Todas</option>
                     @foreach($familias as $f)
                         <option value="{{ $f->id_familia }}"
