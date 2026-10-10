@@ -219,15 +219,14 @@ class InventarioInicialController extends Controller
             $piezasCreadas = 0;
 
             // --- OPTIMIZACIÓN: Pre-calcular Correlativos de Lotes fuera del bucle ---
-            $codigosExistentes = DB::table('lotes')
+            // --- OPTIMIZACIÓN: Calcular Correlativos de Lotes directamente en BD (Sin saturar memoria RAM) ---
+            $maxNumeroIni = DB::table('lotes')
                 ->where('id_empresa', session('idEmpresa'))
                 ->where('codigo', 'LIKE', 'INI-%')
-                ->pluck('codigo');
-
-            $maxNumeroIni = $codigosExistentes->map(function ($codigo) {
-                return (int) substr($codigo, 4);
-            })->max();
-            $siguienteNumeroLote = $maxNumeroIni ? ($maxNumeroIni + 1) : 1;
+                ->select(DB::raw("MAX(CAST(SUBSTRING(codigo, 5) AS UNSIGNED)) as max_codigo"))
+                ->value('max_codigo');
+            
+            $siguienteNumeroLote = $maxNumeroIni ? ((int)$maxNumeroIni + 1) : 1;
 
             $ultimoCorrelativoDB = DB::table('lotes')
                 ->where('id_empresa', session('idEmpresa'))

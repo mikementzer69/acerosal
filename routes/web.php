@@ -577,26 +577,61 @@ Route::get('/reparar-stock', function () {
     ]);
 });
 
-// --- RUTA TEMPORAL DE EMERGENCIA PARA DESTRABAR BASE DE DATOS ---
+// --- RUTA TEMPORAL DE EMERGENCIA PARA DESTRABAR BASE DE DATOS Y LIMPIAR BASURA ---
 Route::get('/limpiar-bd', function () {
     try {
+        // 1. Matar procesos atascados
         $procesos = DB::select('SHOW PROCESSLIST');
         $matados = 0;
-        $detalles = [];
-
         foreach($procesos as $p) {
-            // Matar procesos que llevan más de 15 segundos colgados y que no sean esta misma conexión
-            if($p->Time > 15 && $p->Id != DB::select('SELECT CONNECTION_ID() as id')[0]->id) { 
+            if($p->Time > 10 && $p->Id != DB::select('SELECT CONNECTION_ID() as id')[0]->id) { 
                 DB::statement("KILL {$p->Id}"); 
                 $matados++;
-                $detalles[] = "Proceso {$p->Id} (Comando: {$p->Command}, Tiempo: {$p->Time}s) eliminado.";
             }
+        }
+
+        // 2. Limpiar registros basura creados hoy por error
+        $hoy = now()->format('Y-m-d');
+        
+        // Identificar los lotes creados hoy por el CSV
+        $lotesHoy = DB::table('lotes')
+            ->where('id_empresa', session('idEmpresa'))
+            ->whereDate('created_at', $hoy)
+            ->where('codigo', 'LIKE', 'INI-%')
+            ->pluck('id_lote');
+
+        $lotesBorrados = 0;
+        $piezasBorradas = 0;
+        $movimientosBorrados = 0;
+
+        if ($lotesHoy->count() > 0) {
+            // Borrar kárdex
+            $movimientosBorrados = DB::table('movimientos_inventario')
+                ->where('id_empresa', session('idEmpresa'))
+                ->where('origen', 'INICIAL')
+                ->whereDate('created_at', $hoy)
+                ->delete();
+
+            // Borrar piezas
+            $piezasBorradas = DB::table('piezas')
+                ->whereIn('id_lote', $lotesHoy)
+                ->delete();
+
+            // Borrar lotes
+            $lotesBorrados = DB::table('lotes')
+                ->whereIn('id_lote', $lotesHoy)
+                ->delete();
         }
 
         return response()->json([
             'status' => 'success',
-            'mensaje' => "¡Operación exitosa! Se han eliminado $matados procesos atascados.",
-            'detalles' => $detalles
+            'mensaje' => "¡Limpieza Profunda Exitosa!",
+            'detalles' => [
+                'Procesos atascados matados' => $matados,
+                'Lotes basura eliminados' => $lotesBorrados,
+                'Piezas basura eliminadas' => $piezasBorradas,
+                'Movimientos de kárdex eliminados' => $movimientosBorrados
+            ]
         ]);
     } catch (\Exception $e) {
         return response()->json([

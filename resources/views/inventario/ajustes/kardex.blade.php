@@ -252,6 +252,11 @@
 </tfoot>
 </table>
     </div>
+
+    {{-- Paginación Automática --}}
+    <div class="d-flex justify-content-center mt-4">
+        {{ $movimientos->links('pagination::bootstrap-5') }}
+    </div>
 </div>
 
 <script>

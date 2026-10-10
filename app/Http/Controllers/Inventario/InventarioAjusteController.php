@@ -472,9 +472,7 @@ class InventarioAjusteController extends Controller
         if ($fechaInicio && $fechaFin) {
             $query->whereBetween('m.fecha', [$fechaInicio . ' 00:00:00', $fechaFin . ' 23:59:59']);
         }
-
-        $movimientos = $query->get();
-
+        $movimientos = $query->paginate(100)->appends(request()->query());
         $saldoAcumulado = $saldoInicial;
         $totalEntradas = 0; $totalSalidas = 0;
 
