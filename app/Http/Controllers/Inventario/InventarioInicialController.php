@@ -204,4 +204,171 @@ class InventarioInicialController extends Controller
             ], 500);
         }
     }
+    public function importarCSV(Request $request)
+    {
+        $request->validate([
+            'archivo_csv' => 'required|file'
+        ]);
+
+        $archivo = $request->file('archivo_csv');
+        $handle = fopen($archivo->getRealPath(), "r");
+
+        DB::beginTransaction();
+        try {
+            $filaCount = 0;
+            $piezasCreadas = 0;
+
+            while (($datos = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                $filaCount++;
+                
+                // Si la fila no tiene al menos 3 columnas, saltamos
+                if (count($datos) < 3) continue;
+
+                $codigo_producto = trim($datos[0]);
+                $cantidad_metros = floatval($datos[1]);
+                $numero_piezas = intval($datos[2]);
+
+                // Si el encabezado u omitir línea vacía
+                if(empty($codigo_producto) || $cantidad_metros <= 0 || $numero_piezas <= 0) continue;
+
+                // 1. Búsqueda del Producto
+                $infoProducto = DB::table('productos')
+                    ->where('codigo', $codigo_producto)
+                    ->where('id_empresa', session('idEmpresa'))
+                    ->where('eliminado', 0)
+                    ->first();
+
+                if (!$infoProducto) {
+                    throw new \Exception("Fila {$filaCount}: El producto con código '{$codigo_producto}' no existe o no pertenece a su empresa.");
+                }
+
+                // 2. Correlativo Lote para el código (INI-XXX)
+                $codigosExistentes = DB::table('lotes')
+                    ->where('id_empresa', session('idEmpresa'))
+                    ->where('codigo', 'LIKE', 'INI-%')
+                    ->pluck('codigo');
+
+                $maxNumeroIni = $codigosExistentes->map(function ($codigo) {
+                    return (int) substr($codigo, 4);
+                })->max();
+
+                $siguienteNumero = $maxNumeroIni ? ($maxNumeroIni + 1) : 1;
+                $codigoLoteFinal = 'INI-' . str_pad($siguienteNumero, 3, '0', STR_PAD_LEFT);
+
+                // 3. Correlativo interno Lote
+                $ultimoCorrelativo = DB::table('lotes')
+                    ->where('id_empresa', session('idEmpresa'))
+                    ->max('correlativo');
+                $nuevoCorrelativo = $ultimoCorrelativo ? ($ultimoCorrelativo + 1) : 1;
+
+                // 4. Totales
+                $totalMetros = $cantidad_metros * $numero_piezas;
+                $pesoUnitario = $cantidad_metros * ($infoProducto->peso_lb_mts ?? 0);
+                $totalLibras = $pesoUnitario * $numero_piezas;
+
+                // 5. Crear el Lote
+                $idLote = DB::table('lotes')->insertGetId([
+                    'id_empresa'             => session('idEmpresa'),
+                    'id_producto'            => $infoProducto->id_producto,
+                    'id_compra'              => null,
+                    'correlativo'            => $nuevoCorrelativo,
+                    'codigo'                 => $codigoLoteFinal,
+                    'fecha_ingreso'          => now()->format('Y-m-d'),
+                    'peso_total_libras'      => $totalLibras,
+                    'unidad_medida_peso'     => 'LB',
+                    'cantidad_total_metros'  => $totalMetros,
+                    'unidad_medida_longitud' => 'MTS',
+                    'relacion_cantidad_peso' => $infoProducto->peso_lb_mts ?? 0,
+                    'total_piezas'           => $numero_piezas,
+                    'eliminado'              => 0,
+                    'created_at'             => now(),
+                    'updated_at'             => now()
+                ]);
+
+                // 6. Recorrer y Guardar Piezas
+                for ($i = 0; $i < $numero_piezas; $i++) {
+                    $correlativoPieza = str_pad($i + 1, 3, '0', STR_PAD_LEFT);
+                    $codigoPieza = "{$infoProducto->codigo}-{$codigoLoteFinal}-{$correlativoPieza}";
+
+                    $idPieza = DB::table('piezas')->insertGetId([
+                        'id_empresa'                 => session('idEmpresa'),
+                        'id_producto'                => $infoProducto->id_producto,
+                        'id_lote'                    => $idLote,
+                        'codigo'                     => $codigoPieza,
+                        'cantidad_metros_inicial'    => $cantidad_metros,
+                        'peso_libras_inicial'        => $pesoUnitario,
+                        'cantidad_metros_actual'     => $cantidad_metros,
+                        'peso_libras_actual'         => $pesoUnitario,
+                        'cantidad_metros_recortados' => 0,
+                        'peso_libras_recortados'     => 0,
+                        'cantidad_comprometida'      => 0,
+                        'retirado'                   => 0,
+                        'finalizado'                 => 0,
+                        'estado'                     => 'ACTIVA',
+                        'eliminado'                  => 0,
+                        'created_at'                 => now(),
+                        'updated_at'                 => now()
+                    ]);
+
+                    // Registrar Movimiento (Kárdex)
+                    DB::table('movimientos_inventario')->insert([
+                        'id_pieza'               => $idPieza,
+                        'id_empresa'             => session('idEmpresa'),
+                        'id_producto'            => $infoProducto->id_producto,
+                        'id_corte'               => null,
+                        'id_compra'              => null,
+                        'no_orden'               => null,
+                        'origen'                 => 'INICIAL',
+                        'tipo'                   => 'entrada',
+                        'cantidad'               => $cantidad_metros,
+                        'cantidad_solicitada'    => $cantidad_metros,
+                        'cantidad_total_retirada'=> $cantidad_metros,
+                        'tolerancia_aplicada'    => 0,
+                        'peso'                   => $pesoUnitario,
+                        'peso_neto_libras'       => $pesoUnitario,
+                        'precio_unitario_bodega' => $infoProducto->precio_unitario_bodega ?? 0,
+                        'saldo_metros'           => $cantidad_metros,
+                        'saldo_libras'           => $pesoUnitario,
+                        'fecha'                  => now(),
+                        'id_usuario'             => session('idUsuario') ?? 1,
+                        'comentario'             => "Carga inicial Lote: " . $codigoLoteFinal . " (CSV)",
+                        'eliminado'              => 0
+                    ]);
+
+                    $piezasCreadas++;
+                }
+
+                // 7. Actualizar Stock Maestro
+                DB::table('productos')
+                    ->where('id_producto', $infoProducto->id_producto)
+                    ->where('id_empresa', session('idEmpresa'))
+                    ->update([
+                        'stock_metros'      => DB::raw("stock_metros + $totalMetros"),
+                        'peso_total_libras' => DB::raw("peso_total_libras + $totalLibras"),
+                        'stock_actual'      => DB::raw("stock_actual + $numero_piezas")
+                    ]);
+            }
+            fclose($handle);
+
+            if($piezasCreadas === 0) {
+                throw new \Exception("El archivo CSV estaba vacío o no contenía datos con el formato correcto.");
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => "Inventario cargado correctamente. Se crearon $piezasCreadas piezas."
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            if(isset($handle)) fclose($handle);
+            Log::error("Error en Carga CSV Inicial: " . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

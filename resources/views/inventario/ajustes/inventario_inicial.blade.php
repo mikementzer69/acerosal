@@ -152,7 +152,12 @@
     <div class="card-dark">
         <div class="card-header-dark">
             <span><i class="fas fa-boxes"></i> CARGA INICIAL DE INVENTARIO</span>
-            <small style="opacity: 0.8;">Modo: Ingreso Directo</small>
+            <div>
+                <button type="button" class="btn btn-sm" data-toggle="modal" data-target="#modalCSV" style="background-color: #38a169; color: white; border: none; padding: 5px 10px; border-radius: 6px; margin-right: 10px;">
+                    <i class="fas fa-file-csv"></i> Importar CSV
+                </button>
+                <small style="opacity: 0.8;">Modo: Ingreso Directo</small>
+            </div>
         </div>
 
         <div class="card-body" style="padding: 25px;">
@@ -240,6 +245,39 @@
                 </div>
 
             </form>
+        </div>
+    </div>
+
+    {{-- MODAL CSV --}}
+    <div class="modal fade" id="modalCSV" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content" style="background-color: #2d3748; color: #e2e8f0;">
+                <div class="modal-header" style="border-bottom: 1px solid #4a5568;">
+                    <h5 class="modal-title"><i class="fas fa-file-csv"></i> Importar desde CSV</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.8;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="formCSV" action="{{ route('inventario.inicial.importar_csv') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body">
+                        <p style="font-size: 0.9rem; color: #a0aec0;">El archivo CSV debe tener 3 columnas sin encabezado, en este orden exacto:</p>
+                        <ol style="font-size: 0.85rem; color: #cbd5e0; background-color: #1a202c; padding: 15px 15px 15px 30px; border-radius: 6px;">
+                            <li><strong>Código de Producto</strong> (Ej: VAR-001)</li>
+                            <li><strong>Longitud/Metros</strong> (Ej: 6.00)</li>
+                            <li><strong>Número de piezas</strong> (Ej: 10)</li>
+                        </ol>
+                        <div class="form-group mt-3">
+                            <label class="label-dark">Seleccionar Archivo (.csv)</label>
+                            <input type="file" name="archivo_csv" class="input-dark" accept=".csv" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #4a5568;">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success" id="btnProcesarCSV" style="background-color: #38a169; border-color: #38a169;">Procesar Archivo</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -460,6 +498,41 @@ function mostrarAlerta(tipo, msj) {
     setTimeout(() => { container.innerHTML = ''; }, 5000);
 }
 
+// Manejo del formulario CSV
+document.getElementById('formCSV').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnProcesarCSV');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+
+    const formData = new FormData(this);
+
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === 'success') {
+            $('#modalCSV').modal('hide');
+            mostrarAlerta('success', data.message);
+            setTimeout(() => { window.location.reload(); }, 1500);
+        } else {
+            $('#modalCSV').modal('hide');
+            mostrarAlerta('error', data.message || 'Error desconocido');
+            btn.disabled = false;
+            btn.innerHTML = 'Procesar Archivo';
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        $('#modalCSV').modal('hide');
+        mostrarAlerta('error', 'Error de conexión al subir el archivo');
+        btn.disabled = false;
+        btn.innerHTML = 'Procesar Archivo';
+    });
+});
 
 // --- NUEVA FUNCIÓN: CARGAR PRODUCTOS EN CASCADA ---
 /**

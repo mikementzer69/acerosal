@@ -464,7 +464,7 @@ Route::get('/piezas/por-lote/{id}', [OrdenDespachoController::class, 'piezasPorL
 
     Route::get('/inicial', [InventarioInicialController::class, 'index'])->name('inventario.inicial.index');
     Route::post('/inicial/store', [InventarioInicialController::class, 'store'])->name('inventario.inicial.store');
-
+    Route::post('/inicial/importar-csv', [InventarioInicialController::class, 'importarCSV'])->name('inventario.inicial.importar_csv');
     // Formulario de Ajuste Individual
     Route::get('/individual', [InventarioAjusteController::class, 'index'])
         ->name('inventario.ajuste.index');
