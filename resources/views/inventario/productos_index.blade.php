@@ -1,77 +1,179 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+<div class="consulta-container">
 
 <style>
-    .form-label {
-        font-size: 0.85rem;
-        letter-spacing: 0.5px;
-        margin-bottom: 5px;
-    }
-    .select2-container--bootstrap-5 .select2-selection {
-        border-radius: 8px;
-        height: 40px;
-        align-items: center;
-        display: flex;
+    .consulta-container {
+        width: 100%;
+        padding: 5px 0 20px 0;
     }
 
-/* Estilo Dark para los filtros */
-.select2-dark + .select2-container .select2-selection {
-    background-color: #334155 !important;
-    border: 1px solid #475569 !important;
-    color: #f1f5f9 !important;
-    height: 40px !important;
-}
-.select2-dark + .select2-container .select2-selection__rendered {
-    color: #f1f5f9 !important;
-    line-height: 38px !important;
-}
+    .consulta-header {
+        margin-bottom: 20px;
+    }
+
+    .consulta-filter-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+    }
+
+    .consulta-filter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.3fr 1fr auto;
+        gap: 16px;
+        align-items: flex-end;
+    }
+
+    @media (max-width: 1024px) {
+        .consulta-filter-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .consulta-filter-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .consulta-col {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .consulta-label {
+        color: #38bdf8 !important; /* Celeste vibrante de alta legibilidad en fondo oscuro */
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px !important;
+        display: flex !important;
+        align-items: center;
+        gap: 6px;
+        text-transform: uppercase;
+    }
+
+    .consulta-select {
+        width: 100%;
+        height: 42px;
+        background-color: #0f172a !important;
+        border: 1px solid #475569 !important;
+        border-radius: 8px !important;
+        color: #f8fafc !important;
+        padding: 8px 12px;
+        font-size: 13.5px;
+        font-family: Arial, Helvetica, sans-serif !important;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+    }
+
+    .consulta-select:focus {
+        border-color: #38bdf8 !important;
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25) !important;
+    }
+
+    .consulta-select:disabled {
+        background-color: #1e293b !important;
+        color: #64748b !important;
+        border-color: #334155 !important;
+        cursor: not-allowed;
+    }
+
+    .consulta-select option {
+        background-color: #0f172a;
+        color: #f8fafc;
+    }
+
+    .consulta-btn-col {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .consulta-btn {
+        height: 42px;
+        padding: 0 24px !important;
+        background: #2563eb !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.3px;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .consulta-btn:hover {
+        background: #1d4ed8 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
 </style>
 
     {{-- =========================
-         TÍTULO
+         TÍTULO Y ENCABEZADO
     ========================== --}}
-    <div class="mb-4">
-        <h3>Consulta de inventario</h3>
-        <p class="text-muted">
-            Seleccione un producto para ver sus lotes y piezas.
-                {{-- =========================
-                    FILTROS DE BÚSQUEDA (Jerarquía)
-                ========================== --}}
-<div class="card mb-4 border-0 shadow-sm" style="background: #1e293b; color: #f1f5f9; border-radius: 15px;">
-    <div class="card-body p-4">
-        <div class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label small fw-bold text-info"><i class="fa-solid fa-sitemap"></i> 1. FAMILIA</label>
-                <select id="selectFamilia" class="form-select select2-dark" onchange="cargarProductos(this.value)">
+    <div class="consulta-header">
+        <h2 class="erp-title" style="margin-bottom: 6px;">
+            <i class="fa-solid fa-boxes-stacked"></i> Consulta de Inventario
+        </h2>
+        <p style="color: #64748b; font-size: 14px; margin: 0;">
+            Seleccione una calidad o producto para consultar existencias, lotes y piezas disponibles.
+        </p>
+    </div>
+
+    {{-- =========================
+         FILTROS DE BÚSQUEDA
+    ========================== --}}
+    <div class="consulta-filter-card">
+        <div class="consulta-filter-grid">
+            <div class="consulta-col">
+                <label class="consulta-label">
+                    <i class="fa-solid fa-sitemap"></i> 1. FAMILIA / CALIDAD
+                </label>
+                <select id="selectFamilia" class="consulta-select" onchange="cargarProductos(this.value)">
                     <option value="">-- Seleccione Calidad --</option>
                     @foreach($familias as $f)
                         <option value="{{ $f->id_familia }}">{{ $f->nombre }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-bold text-info"><i class="fa-solid fa-box"></i> 2. PRODUCTO</label>
-                <select id="selectProducto" class="form-select select2-dark" disabled onchange="cargarPiezas(this.value)">
+
+            <div class="consulta-col">
+                <label class="consulta-label">
+                    <i class="fa-solid fa-box"></i> 2. PRODUCTO
+                </label>
+                <select id="selectProducto" class="consulta-select" disabled onchange="cargarPiezas(this.value)">
                     <option value="">-- Primero elija familia --</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-bold text-info"><i class="fa-solid fa-barcode"></i> 3. PIEZA (OPCIONAL)</label>
-                <select id="selectPieza" class="form-select select2-dark" disabled>
-                    <option value="">-- Todas --</option>
+
+            <div class="consulta-col">
+                <label class="consulta-label">
+                    <i class="fa-solid fa-barcode"></i> 3. PIEZA (OPCIONAL)
+                </label>
+                <select id="selectPieza" class="consulta-select" disabled>
+                    <option value="">-- Todas las piezas --</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <button type="button" class="btn btn-primary" onclick="realizarConsulta()">
-                    <i class="fa fa-search"></i> CONSULTAR
+
+            <div class="consulta-col consulta-btn-col">
+                <button type="button" class="btn-primary consulta-btn" onclick="realizarConsulta()">
+                    <i class="fa-solid fa-magnifying-glass"></i> CONSULTAR
                 </button>
             </div>
         </div>
-    </div>
-</div>                </div>
-        </p>
     </div>
 
     {{-- =========================

@@ -251,6 +251,19 @@
     .dark-card-header, .card-header { background-color: #000 !important; border-bottom: 1px solid #333 !important; color: #fff !important; padding: 10px 15px !important; font-weight: bold !important; }
     .dark-card-body, .card-body { padding: 15px !important; }
 
+    /* ETIQUETAS DE CAMPOS Y LOTES */
+    .grid-lote label,
+    #contenedorLotes label,
+    .inventory-dashboard label {
+        color: #94a3b8 !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        margin-bottom: 5px !important;
+        display: block !important;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
     /* 3. INPUTS Y TABLAS */
     input, select, textarea, .form-control { background-color: #000 !important; border: 1px solid #444 !important; color: #fff !important; border-radius: 4px !important; padding: 8px !important; }
     input[readonly], input:disabled { background-color: #2c2c2c !important; color: #fbbf24 !important; opacity: 1 !important; }

@@ -56,4 +56,10 @@ class Compra extends Model
     {
         return $this->hasMany(CompraFamilia::class, 'id_compra', 'id_compra');
     }
+
+    // LOTES ASOCIADOS A LA COMPRA
+    public function lotes()
+    {
+        return $this->hasMany(Lote::class, 'id_compra', 'id_compra');
+    }
 }

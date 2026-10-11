@@ -120,6 +120,22 @@
     display: flex;
     align-items: flex-end;
     gap: 12px;
+    flex-wrap: wrap;
+}
+
+.search-row > div {
+    display: flex;
+    flex-direction: column;
+}
+
+.search-row label,
+.erp-search-form label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a !important;
+    margin-bottom: 6px;
+    letter-spacing: 0.2px;
 }
 
 .search-input {
@@ -434,7 +450,8 @@ body {
 }
 
 
-label {
+.form-container label,
+.erp-form label {
     color: #e5e7eb;
 }
 
@@ -585,6 +602,22 @@ label {
     display: flex;
     align-items: flex-end;
     gap: 12px;
+    flex-wrap: wrap;
+}
+
+.search-row > div {
+    display: flex;
+    flex-direction: column;
+}
+
+.search-row label,
+.erp-search-form label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a !important;
+    margin-bottom: 6px;
+    letter-spacing: 0.2px;
 }
 
 .search-input {

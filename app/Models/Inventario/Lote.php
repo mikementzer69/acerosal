@@ -41,8 +41,13 @@ class Lote extends Model
 
 
     public function piezas()
-{
-    // Un lote tiene muchas piezas
-    return $this->hasMany(Pieza::class, 'id_lote', 'id_lote');
-}
+    {
+        // Un lote tiene muchas piezas
+        return $this->hasMany(Pieza::class, 'id_lote', 'id_lote');
+    }
+
+    public function compra()
+    {
+        return $this->belongsTo(Compra::class, 'id_compra', 'id_compra');
+    }
 }

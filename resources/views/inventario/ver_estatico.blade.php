@@ -58,20 +58,20 @@
             {{-- Grid de Datos Técnicos (Como en tu imagen de ingreso) --}}
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #333; border-bottom: 1px solid #333;">
                 <div style="background: #1a1a1a; padding: 10px;">
-                    <label style="display: block; font-size: 0.7rem; color: #888;">Fecha ingreso</label>
-                    <span>{{ $lote->fecha_ingreso }}</span>
+                    <label style="display: block; font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">Fecha ingreso</label>
+                    <span style="color: #f1f5f9; font-weight: 600;">{{ $lote->fecha_ingreso }}</span>
                 </div>
                 <div style="background: #1a1a1a; padding: 10px;">
-                    <label style="display: block; font-size: 0.7rem; color: #888;">Total piezas</label>
-                    <span style="color: #fbbf24;">{{ $lote->piezas->count() }}</span>
+                    <label style="display: block; font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">Total piezas</label>
+                    <span style="color: #fbbf24; font-weight: 600;">{{ $lote->piezas->count() }}</span>
                 </div>
                 <div style="background: #1a1a1a; padding: 10px;">
-                    <label style="display: block; font-size: 0.7rem; color: #888;">Peso total (lb)</label>
-                    <span style="color: #fbbf24;">{{ number_format($lote->peso_total_libras, 4) }}</span>
+                    <label style="display: block; font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">Peso total (lb)</label>
+                    <span style="color: #fbbf24; font-weight: 600;">{{ number_format($lote->peso_total_libras, 4) }}</span>
                 </div>
                 <div style="background: #1a1a1a; padding: 10px;">
-                    <label style="display: block; font-size: 0.7rem; color: #888;">Relación lb/m</label>
-                    <span style="color: #fbbf24;">{{ number_format($lote->relacion_cantidad_peso, 6) }}</span>
+                    <label style="display: block; font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">Relación lb/m</label>
+                    <span style="color: #fbbf24; font-weight: 600;">{{ number_format($lote->relacion_cantidad_peso, 6) }}</span>
                 </div>
             </div>
 

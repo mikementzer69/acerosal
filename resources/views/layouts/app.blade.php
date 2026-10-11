@@ -32,6 +32,61 @@
 
 <style>
 
+/* --- TIPOGRAFIA GLOBAL ARIAL --- */
+body, h1, h2, h3, h4, h5, h6, p, span, a, div, td, th, label, button, input, select, textarea, li, ul, ol {
+    font-family: Arial, Helvetica, sans-serif !important;
+}
+/* Protegemos los íconos de FontAwesome para que no desaparezcan */
+.fa, .fas, .far, .fal, .fab, .fa-solid, .fa-regular, .fa-brands, i {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+}
+
+/* --- ETIQUETAS DE FILTROS Y BUSCADORES EN TODOS LOS INDEX --- */
+.erp-section label,
+.erp-search-form label,
+.search-row label,
+.search-row > div > label,
+.search-row div label,
+.filter-box label,
+.filter-box strong,
+.filter-box td strong,
+.filter-item label,
+.erp-card label,
+.form-label {
+    color: #0f172a !important; /* Azul pizarra oscuro / casi negro para máxima legibilidad */
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    display: block !important;
+    margin-bottom: 6px !important;
+    letter-spacing: 0.2px;
+}
+
+/* Alineación limpia para grupos de búsqueda */
+.search-row {
+    display: flex !important;
+    align-items: flex-end !important;
+    gap: 12px !important;
+    flex-wrap: wrap !important;
+}
+
+.search-row > div {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Mantener legibles las etiquetas en formularios de fondo oscuro (creación/edición/inventario) */
+.form-container label,
+.form-container .form-group label,
+.mayorizacion-card label,
+.mayorizacion-card .form-label,
+.card[style*="background: #1e293b"] label,
+.card[style*="background:#1e293b"] label,
+.inventory-dashboard label,
+.grid-lote label,
+#contenedorLotes label {
+    color: #cbd5e1 !important;
+}
+
 /* Paginación estilo Dark */
 .pagination {
     display: flex;
