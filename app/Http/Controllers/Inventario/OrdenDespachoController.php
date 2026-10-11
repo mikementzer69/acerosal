@@ -41,7 +41,7 @@ class OrdenDespachoController extends Controller
             ->orderBy('nombre')
             ->get();
 
-        // Vendedores filtrados por empresa y rol de Vendedor
+        // Vendedores con rol Vendedor (visibles en cualquier sucursal)
         $vendedores = DB::table('usuarios as u')
             ->join('roles as r', 'u.id_rol', '=', 'r.id_rol')
             ->where(function ($q) {
@@ -49,9 +49,6 @@ class OrdenDespachoController extends Controller
                   ->orWhere('u.id_rol', 3);
             })
             ->where('u.inactivo', 0)
-            ->when(session('idEmpresa'), function ($q, $idEmpresa) {
-                return $q->where('u.id_empresa', $idEmpresa);
-            })
             ->select('u.id_usuario', 'u.nombre', 'u.apellidos')
             ->orderBy('u.nombre')
             ->get();

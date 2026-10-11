@@ -74,6 +74,21 @@
             @enderror
         </div>
 
+        <div class="mb-3">
+            <label class="form-label">Sucursal / Empresa Principal</label>
+            <select name="id_empresa" class="form-control">
+                <option value="">-- Global / Sin Asignar --</option>
+                @foreach($empresas as $emp)
+                    <option value="{{ $emp->id_empresa }}" @selected(old('id_empresa', $usuario->id_empresa) == $emp->id_empresa)>
+                        {{ $emp->nombre }}
+                    </option>
+                @endforeach
+            </select>
+            @error('id_empresa')
+                <small class="text-danger">{{ $message }}</small>
+            @enderror
+        </div>
+
         <div class="form-actions">
             <button class="btn-primary" type="submit">Actualizar</button>
             <a class="btn-secondary" href="{{ route('usuarios.index') }}">Cancelar</a>

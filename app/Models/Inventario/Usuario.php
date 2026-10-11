@@ -5,6 +5,7 @@ namespace App\Models\Inventario;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Inventario\Rol;
+use App\Models\Inventario\Empresa;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Usuario extends Authenticatable
@@ -24,6 +25,7 @@ class Usuario extends Authenticatable
         'email',
         'celular',
         'id_rol', // 👈 ¡ESTE TIENE QUE ESTAR AQUÍ!
+        'id_empresa',
         'inactivo',
     ];
 
@@ -33,11 +35,17 @@ class Usuario extends Authenticatable
         return $query->where('inactivo', 0);
     }
 
-    /* Relación con roles (cuando tengas tabla roles_usuarios) */
-public function rol()
+    /* Relación con roles */
+    public function rol()
     {
         // Enlazamos id_rol de 'usuarios' con id_rol de 'roles'
         return $this->belongsTo(Rol::class, 'id_rol', 'id_rol');
+    }
+
+    /* Relación con empresa / sucursal */
+    public function empresa()
+    {
+        return $this->belongsTo(Empresa::class, 'id_empresa', 'id_empresa');
     }
     public function tieneRol($nombreRol)
 {

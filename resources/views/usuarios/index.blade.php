@@ -32,7 +32,8 @@
                     <th>Usuario</th>
                     <th>Nombre</th>
                     <th>Email</th>
-                    <th>Rol</th> {{-- ✨ Nueva Columna --}}
+                    <th>Rol</th>
+                    <th>Sucursal / Empresa</th>
                     <th>Celular</th>
                     <th style="width:120px; text-align:center;">Acciones</th>
                 </tr>
@@ -46,16 +47,26 @@
                         <td>{{ $u->email }}</td>
 
                         {{-- ✨ Mostramos el nombre del rol usando la relación de Spatie --}}
-                    <td>
-                        @if($u->rol)
-                            <span class="badge-role">
-                                {{ strtoupper($u->rol->nombre ?? $u->rol->name) }}
-                            </span>
-                        @else
-                            {{-- Si llega aquí, es porque el id_rol en la BD es NULL --}}
-                            <span class="text-muted">Sin Rol</span>
-                        @endif
-                    </td>
+                        <td>
+                            @if($u->rol)
+                                <span class="badge-role">
+                                    {{ strtoupper($u->rol->nombre ?? $u->rol->name) }}
+                                </span>
+                            @else
+                                <span class="text-muted">Sin Rol</span>
+                            @endif
+                        </td>
+
+                        {{-- 🏢 Mostramos la Empresa / Sucursal asignada --}}
+                        <td>
+                            @if($u->empresa)
+                                <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 3px 8px; border-radius: 4px; font-size: 0.82em; font-weight: 600;">
+                                    {{ $u->empresa->nombre }}
+                                </span>
+                            @else
+                                <span class="text-muted" style="color: #94a3b8; font-size: 0.85em;">Global</span>
+                            @endif
+                        </td>
 
                         <td>{{ $u->celular ?: '-' }}</td>
 

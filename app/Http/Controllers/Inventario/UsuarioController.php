@@ -5,16 +5,17 @@ namespace App\Http\Controllers\Inventario;
 use App\Http\Controllers\Controller;
 use App\Models\Inventario\Usuario;
 use App\Models\Inventario\Rol;
+use App\Models\Inventario\Empresa;
 use Illuminate\Http\Request;
 
 class UsuarioController extends Controller
 {
     /* ==========================================
-       LISTA CON FILTROS
+       LISTA CON FILTROS (GLOBAL / MULTI-SUCURSAL)
     ========================================== */
     public function index(Request $request)
     {
-        $query = Usuario::activos();
+        $query = Usuario::activos()->with(['rol', 'empresa']);
 
         if ($request->filled('username')) {
             $query->where('username', 'like', '%' . $request->username . '%');
@@ -38,7 +39,8 @@ class UsuarioController extends Controller
     public function create()
     {
         $roles = Rol::all();
-        return view('usuarios.create', compact('roles'));
+        $empresas = Empresa::where('inactivo', 0)->orderBy('nombre')->get();
+        return view('usuarios.create', compact('roles', 'empresas'));
     }
 
     /* ==========================================
@@ -47,24 +49,37 @@ class UsuarioController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'username'  => 'required|string|max:50|unique:usuarios,username',
-            'password'  => 'required|string|min:6',
-            'nombre'    => 'required|string|max:100',
-            'apellidos' => 'required|string|max:100',
-            'email'     => 'required|email|max:150|unique:usuarios,email',
-            'celular'   => 'nullable|string|max:20',
-            'id_rol'    => 'required'
+            'username'   => 'required|string|max:50|unique:usuarios,username',
+            'password'   => 'required|string|min:6',
+            'nombre'     => 'required|string|max:100',
+            'apellidos'  => 'required|string|max:100',
+            'email'      => 'required|email|max:150|unique:usuarios,email',
+            'celular'    => 'nullable|string|max:20',
+            'id_rol'     => 'nullable',
+            'rol_nombre' => 'nullable',
+            'id_empresa' => 'nullable',
         ]);
 
+        $idRol = $request->id_rol;
+        if (!$idRol && $request->filled('rol_nombre')) {
+            $rol = Rol::where('name', $request->rol_nombre)->first();
+            $idRol = $rol ? $rol->id_rol : null;
+        }
+
+        if (!$idRol) {
+            return back()->withErrors(['id_rol' => 'El rol es obligatorio.'])->withInput();
+        }
+
         Usuario::create([
-            'username'  => $request->username,
-            'password'  => bcrypt($request->password),
-            'nombre'    => $request->nombre,
-            'apellidos' => $request->apellidos,
-            'email'     => $request->email,
-            'celular'   => $request->celular,
-            'id_rol'    => $request->id_rol,
-            'inactivo'  => 0,
+            'username'   => $request->username,
+            'password'   => bcrypt($request->password),
+            'nombre'     => $request->nombre,
+            'apellidos'  => $request->apellidos,
+            'email'      => $request->email,
+            'celular'    => $request->celular,
+            'id_rol'     => $idRol,
+            'id_empresa' => $request->id_empresa ?? session('idEmpresa'),
+            'inactivo'   => 0,
         ]);
 
         return redirect()
@@ -79,19 +94,11 @@ class UsuarioController extends Controller
     {
         $usuario = Usuario::findOrFail($id);
         $roles = Rol::all();
-        return view('usuarios.edit', compact('usuario', 'roles'));
+        $empresas = Empresa::where('inactivo', 0)->orderBy('nombre')->get();
+        return view('usuarios.edit', compact('usuario', 'roles', 'empresas'));
     }
 
     /* ==========================================
-       ACTUALIZAR
-    ========================================== */
-/* ==========================================
-       ACTUALIZAR (CORREGIDO)
-    ========================================== */
-/* ==========================================
-   ACTUALIZAR (CORREGIDO)
-========================================== */
-/* ==========================================
        ACTUALIZAR (VERSIÓN FINAL BLINDADA)
     ========================================== */
     public function update(Request $request, $id)
@@ -101,12 +108,13 @@ class UsuarioController extends Controller
 
         // 2. Validamos los campos que sí se pueden editar en tu vista
         $request->validate([
-            'nombre'    => 'required|string|max:100',
-            'apellidos' => 'required|string|max:100',
+            'nombre'     => 'required|string|max:100',
+            'apellidos'  => 'required|string|max:100',
             // Validamos email ignorando el ID actual del usuario
-            'email'     => 'required|email|max:150|unique:usuarios,email,' . $usuario->id_usuario . ',id_usuario',
-            'celular'   => 'nullable|string|max:20',
-            'id_rol'    => 'required'
+            'email'      => 'required|email|max:150|unique:usuarios,email,' . $usuario->id_usuario . ',id_usuario',
+            'celular'    => 'nullable|string|max:20',
+            'id_rol'     => 'required',
+            'id_empresa' => 'nullable',
         ]);
 
         // 3. Mapeo manual de datos: NO incluimos 'username' para protegerlo
@@ -115,6 +123,10 @@ class UsuarioController extends Controller
         $usuario->email     = $request->email;
         $usuario->celular   = $request->celular;
         $usuario->id_rol    = $request->id_rol; // ✨ Aquí se guarda el Rol (Vendedor/Admin)
+
+        if ($request->has('id_empresa')) {
+            $usuario->id_empresa = $request->id_empresa ?: null;
+        }
 
         // 4. Solo si escribiste algo en el campo password de tu vista
         if ($request->filled('password')) {

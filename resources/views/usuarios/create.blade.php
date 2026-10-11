@@ -50,12 +50,29 @@
             <label>Password *</label>
             <input type="password" name="password" required>
         </div>
-        <select name="rol_nombre" class="form-control" required>
+        <div class="form-group">
+            <label>Rol del Sistema *</label>
+            <select name="id_rol" class="form-control" required>
                 <option value="">-- Seleccione un Rol --</option>
                 @foreach($roles as $rol)
-                    <option value="{{ $rol->name }}">{{ $rol->name }}</option>
+                    <option value="{{ $rol->id_rol }}" @selected(old('id_rol') == $rol->id_rol)>
+                        {{ strtoupper($rol->nombre ?? $rol->name) }}
+                    </option>
                 @endforeach
             </select>
+        </div>
+
+        <div class="form-group">
+            <label>Sucursal / Empresa Principal *</label>
+            <select name="id_empresa" class="form-control" required>
+                <option value="">-- Seleccione una Empresa --</option>
+                @foreach($empresas as $emp)
+                    <option value="{{ $emp->id_empresa }}" @selected(old('id_empresa', session('idEmpresa')) == $emp->id_empresa)>
+                        {{ $emp->nombre }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
 
 
 
