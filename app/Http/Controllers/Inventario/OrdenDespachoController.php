@@ -41,11 +41,19 @@ class OrdenDespachoController extends Controller
             ->orderBy('nombre')
             ->get();
 
-        // Vendedores filtrados por empresa (usuarios con rol = 2)
-        $vendedores = DB::table('usuarios')
-            ->where('id_empresa', session('idEmpresa'))
-            ->where('inactivo', 0)
-            ->orderBy('nombre')
+        // Vendedores filtrados por empresa y rol de Vendedor
+        $vendedores = DB::table('usuarios as u')
+            ->join('roles as r', 'u.id_rol', '=', 'r.id_rol')
+            ->where(function ($q) {
+                $q->whereRaw('LOWER(r.name) LIKE ?', ['%vendedor%'])
+                  ->orWhere('u.id_rol', 3);
+            })
+            ->where('u.inactivo', 0)
+            ->when(session('idEmpresa'), function ($q, $idEmpresa) {
+                return $q->where('u.id_empresa', $idEmpresa);
+            })
+            ->select('u.id_usuario', 'u.nombre', 'u.apellidos')
+            ->orderBy('u.nombre')
             ->get();
 
         // Correlativo orden global (para evitar conflictos de clave única entre empresas)
@@ -139,6 +147,12 @@ class OrdenDespachoController extends Controller
                             $precioVenta = floatval($famInfo->precio_lista ?? 0);
                         }
                     }
+                }
+
+                // BLOQUEO ESTRICTO: La calidad debe tener precio configurado (precio de lista o especial)
+                if ($precioVenta <= 0) {
+                    $nomFamilia = DB::table('familias')->where('id_familia', $d['id_familia'])->value('nombre') ?? "ID {$d['id_familia']}";
+                    throw new \Exception("La calidad '{$nomFamilia}' no tiene precio de lista ni especial configurado. No se puede guardar la orden sin precio.");
                 }
 
                 // D. GUARDAR DETALLE

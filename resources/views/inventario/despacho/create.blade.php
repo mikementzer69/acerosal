@@ -341,30 +341,45 @@ function actualizarPrecioDesdeFamilia() {
     
     if (famSel.selectedIndex > 0) {
         const opt = famSel.options[famSel.selectedIndex];
-        const pLista = opt.getAttribute('data-preciolista');
-        const pEspecial = opt.getAttribute('data-precioespecial');
+        const nombreCalidad = opt.text.trim();
+        const pLista = parseFloat(opt.getAttribute('data-preciolista')) || 0;
+        const pEspecial = parseFloat(opt.getAttribute('data-precioespecial')) || 0;
         const pAutorizado = opt.getAttribute('data-precioautorizado');
         
         if (tipoPrecio.value === 'especial') {
-            const numPEspecial = parseFloat(pEspecial) || 0;
-            if (numPEspecial <= 0) {
-                inputPrecio.value = parseFloat(pLista).toFixed(2);
-                alert("Esta Calidad no tiene un Precio Especial configurado (es cero o nulo). Se aplicará el Precio de Lista.");
+            if (pEspecial <= 0) {
+                if (pLista > 0) {
+                    inputPrecio.value = pLista.toFixed(2);
+                    alert("Esta Calidad no tiene un Precio Especial configurado (es cero o nulo). Se aplicará el Precio de Lista ($" + pLista.toFixed(2) + ").");
+                } else {
+                    inputPrecio.value = '';
+                    alert("¡Atención! La calidad '" + nombreCalidad + "' no tiene configurado ni Precio Especial ni Precio de Lista. Debe asignarle precio a la calidad antes de despachar.");
+                }
                 tipoPrecio.value = 'lista';
                 divMotivo.style.display = 'none';
                 inputMotivo.value = '';
             } else if (pAutorizado === 'S') {
-                inputPrecio.value = numPEspecial.toFixed(2);
+                inputPrecio.value = pEspecial.toFixed(2);
                 divMotivo.style.display = 'block';
             } else {
-                inputPrecio.value = parseFloat(pLista).toFixed(2);
-                alert("Esta Calidad no tiene el Precio Especial autorizado. Se aplicará el Precio de Lista.");
+                if (pLista > 0) {
+                    inputPrecio.value = pLista.toFixed(2);
+                    alert("Esta Calidad no tiene el Precio Especial autorizado. Se aplicará el Precio de Lista ($" + pLista.toFixed(2) + ").");
+                } else {
+                    inputPrecio.value = '';
+                    alert("¡Atención! El Precio Especial de '" + nombreCalidad + "' no está autorizado y tampoco tiene configurado Precio de Lista. Asigne un precio antes de despachar.");
+                }
                 tipoPrecio.value = 'lista';
                 divMotivo.style.display = 'none';
                 inputMotivo.value = '';
             }
         } else {
-            inputPrecio.value = parseFloat(pLista).toFixed(2);
+            if (pLista > 0) {
+                inputPrecio.value = pLista.toFixed(2);
+            } else {
+                inputPrecio.value = '';
+                alert("¡Atención! La calidad '" + nombreCalidad + "' no tiene Precio de Lista configurado (es cero o nulo). No se podrá despachar hasta que se configure un precio.");
+            }
             divMotivo.style.display = 'none';
             inputMotivo.value = '';
         }
@@ -533,7 +548,14 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
     const tipoPrecioInp = document.getElementById('tipo_precio');
 
     if (!familiaSel.value || !productoSel.value || !parseFloat(cantidadInp.value)) {
-        alert('Complete los campos obligatorios');
+        alert('Complete los campos obligatorios (Calidad, Producto y Cantidad).');
+        return;
+    }
+
+    const precioActual = parseFloat(precioInp.value) || 0;
+    if (precioActual <= 0) {
+        const nombreCalidad = familiaSel.options[familiaSel.selectedIndex] ? familiaSel.options[familiaSel.selectedIndex].text.trim() : 'seleccionada';
+        alert("No se puede agregar al detalle: la calidad '" + nombreCalidad + "' no tiene un precio asignado (precio de lista o especial es 0 o nulo).");
         return;
     }
 
@@ -800,9 +822,23 @@ document.getElementById('formDespacho').addEventListener('keydown', function(e) 
     }
 });
 
-// 6. Envío Formulario AJAX
 document.getElementById('formDespacho').addEventListener('submit', function(e) {
     e.preventDefault();
+
+    if (!detalles || detalles.length === 0) {
+        alert('Debe agregar al menos una línea de detalle a la orden de despacho.');
+        return;
+    }
+
+    // Validar que ninguna línea tenga precio 0 o nulo
+    for (let i = 0; i < detalles.length; i++) {
+        const p = parseFloat(detalles[i].precio_venta_sin_iva) || 0;
+        if (p <= 0) {
+            alert("Error: La línea #" + (i + 1) + " no tiene precio de venta válido asignado. La calidad debe tener precio de lista o especial antes de despachar.");
+            return;
+        }
+    }
+
     const btn = this.querySelector('button[type="submit"]');
     btn.disabled = true;
 
