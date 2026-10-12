@@ -74,9 +74,45 @@ body, h1, h2, h3, h4, h5, h6, p, span, a, div, td, th, label, button, input, sel
     flex-direction: column !important;
 }
 
+/* Títulos y Subtítulos en formularios y tarjetas oscuras */
+.form-container h1,
+.form-container h2,
+.form-container h3,
+.form-container .form-title,
+.ajuste-wrapper h1,
+.ajuste-wrapper h2,
+.ajuste-wrapper h3,
+.modal-content h1,
+.modal-content h2,
+.modal-content h3,
+.card[style*="background: #1e293b"] h2,
+.card[style*="background: #1e293b"] h3 {
+    color: #f8fafc !important; /* Blanco brillante */
+    font-weight: 700 !important;
+}
+
+.form-container h4,
+.form-container h5,
+.form-container legend,
+.ajuste-wrapper h4,
+.ajuste-wrapper h5,
+.modal-content h4,
+.modal-content h5,
+.card[style*="background: #1e293b"] h4,
+.card[style*="background: #1e293b"] h5 {
+    color: #38bdf8 !important; /* Cyan claro moderno, súper legible */
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    margin-top: 15px !important;
+    margin-bottom: 12px !important;
+}
+
 /* Mantener legibles las etiquetas en formularios de fondo oscuro (creación/edición/inventario) */
 .form-container label,
 .form-container .form-group label,
+.ajuste-wrapper label,
+.modal-content label,
+.card-detalle-pieza label,
 .mayorizacion-card label,
 .mayorizacion-card .form-label,
 .card[style*="background: #1e293b"] label,
@@ -84,7 +120,27 @@ body, h1, h2, h3, h4, h5, h6, p, span, a, div, td, th, label, button, input, sel
 .inventory-dashboard label,
 .grid-lote label,
 #contenedorLotes label {
-    color: #cbd5e1 !important;
+    color: #f1f5f9 !important; /* Blanco hueso / Slate claro para máxima legibilidad */
+    font-weight: 600 !important;
+}
+
+/* Opciones de select y placeholders en fondo oscuro */
+.form-container select option,
+.card[style*="background: #1e293b"] select option {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+.form-container input::placeholder,
+.form-container textarea::placeholder {
+    color: #94a3b8 !important; /* Gris claro legible */
+    opacity: 1 !important;
+}
+
+.form-container hr {
+    border: 0 !important;
+    border-top: 1px solid #334155 !important;
+    margin: 20px 0 !important;
 }
 
 /* Paginación estilo Dark */

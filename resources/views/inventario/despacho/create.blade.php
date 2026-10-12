@@ -34,6 +34,21 @@
 }
 .select2-results__option--highlighted[aria-selected] {
     background-color: #3b82f6 !important;
+    color: white !important;
+}
+.select2-container--default .select2-results__option {
+    color: #ffffff !important;
+    background-color: #1f2a3a !important;
+}
+.select2-container--default .select2-results__option--selected {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+}
+
+/* Placeholders legibles */
+::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1 !important;
 }
 
 /* Tabla detalle despacho */
