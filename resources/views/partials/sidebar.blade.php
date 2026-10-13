@@ -75,6 +75,11 @@
                             Órdenes de despacho
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('inventario.etiquetas.index') }}">
+                            Etiquetas de Piezas
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a href="{{ route('inventario.inicial.index') }}" class="nav-link {{ request()->is('inventario/ajustes/inicial*') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-boxes"></i>

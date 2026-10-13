@@ -4,6 +4,7 @@
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\Inventario\OrdenDespachoController;
 use App\Http\Controllers\Inventario\InventarioInicialController;
+use App\Http\Controllers\Inventario\EtiquetaPiezaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Inventario\UbicacionController;
 use App\Http\Controllers\LoginController;
@@ -430,6 +431,14 @@ Route::get(
     '/inventario/piezas-por-lote/{id_lote}',
     [App\Http\Controllers\Inventario\OrdenDespachoController::class, 'piezasPorLote']
 )->name('inventario.piezas.lote');
+
+// --- ETIQUETAS DE PIEZAS (VIÑETAS) ---
+Route::get('/inventario/etiquetas', [EtiquetaPiezaController::class, 'index'])->name('inventario.etiquetas.index');
+Route::get('/inventario/etiquetas/ajax/productos/{id_familia}', [EtiquetaPiezaController::class, 'ajaxProductos'])->name('inventario.etiquetas.ajax.productos');
+Route::get('/inventario/etiquetas/ajax/lotes/{id_producto}', [EtiquetaPiezaController::class, 'ajaxLotes'])->name('inventario.etiquetas.ajax.lotes');
+Route::get('/inventario/etiquetas/ajax/piezas/{id_lote}', [EtiquetaPiezaController::class, 'ajaxPiezas'])->name('inventario.etiquetas.ajax.piezas');
+Route::match(['get', 'post'], '/inventario/etiquetas/imprimir', [EtiquetaPiezaController::class, 'imprimir'])->name('inventario.etiquetas.imprimir');
+
 ////Inventario inicial
 
 // Ruta para el reingreso de piezas nuevas desde retales

@@ -76,6 +76,14 @@
 
                         <td class="erp-actions-cell">
 
+                            {{-- ETIQUETAS DE LA CALIDAD --}}
+                            <a href="{{ route('inventario.etiquetas.index', ['id_familia' => $f->id_familia]) }}"
+                               class="btn-table"
+                               style="background-color: #8b5cf6; color: #fff;"
+                               title="Imprimir Etiquetas de esta Calidad">
+                                <i class="fa-solid fa-tags"></i>
+                            </a>
+
                             {{-- EDITAR --}}
                             <a href="{{ route('familia.editar', $f->id_familia) }}"
                                class="btn-table btn-edit">

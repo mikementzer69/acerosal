@@ -59,9 +59,16 @@
             </span>
         </div>
 
-        <a href="{{ route('inventario.inventario.consulta') }}" class="btn btn-secondary">
-            <i class="fa-solid fa-arrow-left"></i> Volver
-        </a>
+        <div>
+            <a href="{{ route('inventario.etiquetas.index', ['id_familia' => $producto->id_familia, 'id_producto' => $producto->id_producto]) }}"
+               class="btn btn-warning text-dark me-2 shadow-sm"
+               title="Seleccionar e imprimir viñetas de este producto">
+                <i class="fa-solid fa-tags me-1"></i> Imprimir Viñetas
+            </a>
+            <a href="{{ route('inventario.inventario.consulta') }}" class="btn btn-secondary shadow-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Volver
+            </a>
+        </div>
     </div>
 
     {{-- =========================
@@ -82,9 +89,16 @@
                     <span class="mx-2">|</span>
                     <small class="text-muted">Ingreso: {{ \Carbon\Carbon::parse($lote->fecha_ingreso)->format('d/m/Y') }}</small>
                 </div>
-                <div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
                     <span class="badge bg-secondary">Piezas: {{ $lote->piezas->count() }}</span>
                     <span class="badge bg-secondary">Peso Lote: {{ number_format($lote->peso_total_libras, 2) }} Lbs</span>
+                    <a href="{{ route('inventario.etiquetas.imprimir', ['id_lote' => $lote->id_lote]) }}"
+                       target="_blank"
+                       class="btn btn-sm btn-outline-primary fw-semibold"
+                       style="font-size: 11px; padding: 3px 9px;"
+                       title="Imprimir Viñetas de todas las piezas de este Lote">
+                        <i class="fa-solid fa-tags me-1"></i> Imprimir Viñetas
+                    </a>
                 </div>
             </div>
 
