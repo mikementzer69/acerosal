@@ -128,21 +128,46 @@
                             <th class="align-middle">Producto / Medidas</th>
                             <th class="align-middle">Lote</th>
                             <th class="align-middle">Pieza</th>
-                            {{-- 🚩 NUEVA COLUMNA: UBICACIÓN --}}
                             <th class="text-center align-middle">Ubicación</th>
-                            <th class="text-end align-middle">Metros<br><small class="text-muted">(Neto)</small></th>
+                            <th class="text-center align-middle">Cant. Cortes</th>
+                            <th class="text-end align-middle">Metros<br><small class="text-muted">(Total Neto)</small></th>
                         </tr>
                     </thead>
                     <tbody>
-                        {{-- ✨ PASO 1: INICIALIZAR VARIABLES (Esto evita el error Undefined) ✨ --}}
                         @php
                             $totalMetros = 0;
                             $totalLibras = 0;
                             $totalMermaMts = 0;
                             $totalMermaLbs = 0;
+
+                            // Agrupación automática de cortes repetidos de la misma pieza y medida
+                            $detallesAgrupados = $orden->detalles->groupBy(function($item) {
+                                $metros = number_format(floatval($item->cantidad_metros), 4, '.', '');
+                                $medidaSol = trim($item->medida_solicitada ?? '');
+                                $idPieza = $item->id_pieza ?? 0;
+                                $idLote = $item->id_lote ?? 0;
+                                $idProd = $item->id_producto ?? 0;
+                                return "{$idProd}_{$idLote}_{$idPieza}_{$metros}_{$medidaSol}";
+                            })->map(function($grupo) {
+                                $primer = $grupo->first();
+                                return (object)[
+                                    'familia'           => $primer->familia,
+                                    'producto'          => $primer->producto,
+                                    'lote'              => $primer->lote,
+                                    'pieza'             => $primer->pieza,
+                                    'cantidad_cortes'   => $grupo->count(),
+                                    'medida_unitaria'   => floatval($primer->cantidad_metros),
+                                    'medida_solicitada' => $primer->medida_solicitada,
+                                    'cantidad_metros'   => $grupo->sum(fn($d) => floatval($d->cantidad_metros)),
+                                    'cantidad_libras'   => $grupo->sum(fn($d) => floatval($d->cantidad_libras)),
+                                    'merma_metros'      => $grupo->sum(fn($d) => floatval($d->merma_metros ?? 0)),
+                                    'merma_libras'      => $grupo->sum(fn($d) => floatval($d->merma_libras ?? 0)),
+                                    'precio_venta_sin_iva' => floatval($primer->precio_venta_sin_iva),
+                                ];
+                            });
                         @endphp
 
-                        @foreach($orden->detalles as $d)
+                        @foreach($detallesAgrupados as $d)
                             <tr>
                                 <td class="ps-3 small text-secondary">
                                     {{ $d->familia->nombre ?? '-' }}
@@ -178,12 +203,28 @@
                                 <td class="small">{{ $d->lote->codigo ?? '-' }}</td>
                                 <td class="small">{{ $d->pieza->codigo ?? '-' }}</td>
 
-                                {{-- 🚩 COLUMNA: UBICACIÓN (Buscamos en pieza o producto) --}}
+                                {{-- 🚩 COLUMNA: UBICACIÓN --}}
                                 <td class="text-center">
                                     <span class="badge bg-light text-dark border small">
                                         <i class="fa-solid fa-location-dot text-danger me-1" style="font-size: 9px;"></i>
                                         {{ $d->familia->ubicacion->nombre ?? ($d->producto->ubicacion->nombre ?? 'B-01') }}
                                     </span>
+                                </td>
+
+                                {{-- 🚩 NUEVA COLUMNA: CANTIDAD / CORTES AGRUPADOS --}}
+                                <td class="text-center align-middle">
+                                    @if($d->cantidad_cortes > 1)
+                                        <span class="badge bg-primary px-2 py-1 fw-bold" style="font-size: 12px;">
+                                            {{ $d->cantidad_cortes }} cortes
+                                        </span>
+                                        <div class="text-muted mt-1" style="font-size: 11px;">
+                                            de {{ number_format($d->medida_unitaria, 4) }} m c/u
+                                        </div>
+                                    @else
+                                        <span class="badge bg-light text-dark border" style="font-size: 11px;">
+                                            1 corte
+                                        </span>
+                                    @endif
                                 </td>
 
                                 <td class="text-end fw-bold">{{ number_format($d->cantidad_metros, 4) }}</td>
@@ -201,8 +242,8 @@
                     </tbody>
                     <tfoot class="table-light fw-bold">
                         <tr>
-                            {{-- Colspan ajustado a 5 por la nueva columna de ubicación --}}
-                            <th colspan="5" class="text-end py-2">TOTAL ACUMULADO</th>
+                            {{-- Colspan ajustado a 6 por la nueva columna de cortes --}}
+                            <th colspan="6" class="text-end py-2">TOTAL ACUMULADO</th>
                             <th class="text-end text-primary">{{ number_format($totalMetros, 4) }}</th>
 
                         </tr>

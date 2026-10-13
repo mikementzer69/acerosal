@@ -547,7 +547,7 @@
                     <th style="width: 35px;" class="text-center">#</th>
                     <th style="width: 110px;" class="text-start">Calidad</th>
                     <th class="text-start">Descripción / Dimensiones</th>
-                    <th style="width: 100px;" class="text-center">Medida Sol.</th>
+                    <th style="width: 120px;" class="text-center">Cant. / Cortes</th>
                     <th style="width: 75px;" class="text-end">Metros</th>
                     <th style="width: 85px;" class="text-end">Peso (lb)</th>
                     <th style="width: 90px;" class="text-end">Precio ($/lb)</th>
@@ -559,9 +559,34 @@
                     $totalMetros = 0;
                     $totalLibras = 0;
                     $totalSubtotal = 0;
+
+                    // Agrupación automática de cortes repetidos de la misma pieza y medida
+                    $detallesAgrupados = $orden->detalles->groupBy(function($item) {
+                        $metros = number_format(floatval($item->cantidad_metros), 4, '.', '');
+                        $medidaSol = trim($item->medida_solicitada ?? '');
+                        $idPieza = $item->id_pieza ?? 0;
+                        $idLote = $item->id_lote ?? 0;
+                        $idProd = $item->id_producto ?? 0;
+                        $precio = number_format(floatval($item->precio_venta_sin_iva ?? 0), 2, '.', '');
+                        return "{$idProd}_{$idLote}_{$idPieza}_{$metros}_{$medidaSol}_{$precio}";
+                    })->map(function($grupo) {
+                        $primer = $grupo->first();
+                        return (object)[
+                            'familia'           => $primer->familia,
+                            'producto'          => $primer->producto,
+                            'lote'              => $primer->lote,
+                            'pieza'             => $primer->pieza,
+                            'cantidad_cortes'   => $grupo->count(),
+                            'medida_unitaria'   => floatval($primer->cantidad_metros),
+                            'medida_solicitada' => $primer->medida_solicitada,
+                            'cantidad_metros'   => $grupo->sum(fn($d) => floatval($d->cantidad_metros)),
+                            'cantidad_libras'   => $grupo->sum(fn($d) => floatval($d->cantidad_libras)),
+                            'precio_venta_sin_iva' => floatval($primer->precio_venta_sin_iva),
+                        ];
+                    });
                 @endphp
 
-                @foreach($orden->detalles as $idx => $d)
+                @foreach($detallesAgrupados as $idx => $d)
                     @php
                         $metros = floatval($d->cantidad_metros);
                         $libras = floatval($d->cantidad_libras);
@@ -577,7 +602,7 @@
                         $plg = $d->producto->pulgadas ?? '-';
                     @endphp
                     <tr>
-                        <td class="text-center">{{ $idx + 1 }}</td>
+                        <td class="text-center">{{ $loop->iteration }}</td>
                         <td>
                             <strong>{{ $d->familia->nombre ?? 'N/A' }}</strong>
                         </td>
@@ -597,7 +622,19 @@
                             @endif
                         </td>
                         <td class="text-center">
-                            {{ $d->medida_solicitada ? $d->medida_solicitada : number_format($metros, 2).' m' }}
+                            @if($d->cantidad_cortes > 1)
+                                <span style="display: inline-block; background-color: #1e3a8a; color: white; padding: 2px 7px; border-radius: 4px; font-weight: bold; font-size: 11px;">
+                                    {{ $d->cantidad_cortes }} cortes
+                                </span>
+                                <div style="font-size: 10px; color: #64748b; margin-top: 2px;">
+                                    de {{ number_format($d->medida_unitaria, 4) }} m c/u
+                                </div>
+                            @else
+                                <span style="font-weight: 600;">1 corte</span>
+                                <div style="font-size: 10px; color: #64748b; margin-top: 2px;">
+                                    {{ $d->medida_solicitada ? $d->medida_solicitada : number_format($d->medida_unitaria, 4).' m' }}
+                                </div>
+                            @endif
                         </td>
                         <td class="text-end fw-bold">{{ number_format($metros, 4) }}</td>
                         <td class="text-end fw-bold">{{ number_format($libras, 2) }}</td>
