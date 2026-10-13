@@ -92,15 +92,28 @@ class CompraController extends Controller
         return view('compras.detalle', compact('compra'));
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $compras = Compra::where('id_empresa', session('idEmpresa')) // 🔐 Filtro de seguridad
+        $idEmpresa = session('idEmpresa');
+        $query = Compra::with('proveedor')
+            ->where('id_empresa', $idEmpresa)
             ->orderBy('fecha_ingreso', 'desc')
-            ->orderBy('id_compra', 'desc')
-            ->get();
+            ->orderBy('id_compra', 'desc');
+
+        if ($request->filled('busqueda')) {
+            $busqueda = trim($request->busqueda);
+            $query->where(function ($q) use ($busqueda) {
+                $q->where('numero_factura', 'like', "%{$busqueda}%")
+                  ->orWhereHas('proveedor', function ($qp) use ($busqueda) {
+                      $qp->where('nombre', 'like', "%{$busqueda}%");
+                  });
+            });
+        }
+
+        $compras = $query->paginate(15)->withQueryString();
 
         $borradores = CompraBorrador::where('id_usuario', session('idUsuario'))
-            ->where('id_empresa', session('idEmpresa'))
+            ->where('id_empresa', $idEmpresa)
             ->get();
 
         return view('compras.index', compact('compras', 'borradores'));

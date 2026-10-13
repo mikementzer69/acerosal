@@ -19,10 +19,36 @@
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <div>
                     <h3><i class="fa-solid fa-boxes-packing"></i> Inventario</h3>
-                    <span class="badge">{{ count($comprasNuevas) }}</span>
+                    <span class="badge">{{ $comprasNuevas instanceof \Illuminate\Pagination\LengthAwarePaginator ? $comprasNuevas->total() : count($comprasNuevas) }}</span>
                 </div>
             </div>
         </div>
+
+        {{-- BÚSQUEDA Y FILTRO RÁPIDO --}}
+        <form method="GET" action="{{ route('inventario.automatico') }}" style="padding: 10px; background-color: #111; border-bottom: 1px solid #222; display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; gap: 6px;">
+                <input type="text"
+                       name="busqueda"
+                       value="{{ request('busqueda') }}"
+                       placeholder="Buscar factura o proveedor..."
+                       style="padding: 5px 8px; font-size: 0.8rem; background: #000; color: #fff; border: 1px solid #333; border-radius: 4px; flex: 1;">
+                <button type="submit" style="background: #2563eb; color: #fff; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 0.8rem;">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </div>
+            <div style="display: flex; gap: 6px; align-items: center;">
+                <select name="estado" onchange="this.form.submit()" style="padding: 4px 6px; font-size: 0.75rem; background: #000; color: #bbb; border: 1px solid #333; border-radius: 4px; flex: 1;">
+                    <option value="">-- Todos los estados --</option>
+                    <option value="pendiente" {{ request('estado') === 'pendiente' ? 'selected' : '' }}>Pendientes</option>
+                    <option value="ingresado" {{ request('estado') === 'ingresado' ? 'selected' : '' }}>Ingresados</option>
+                </select>
+                @if(request('busqueda') || request('estado'))
+                    <a href="{{ route('inventario.automatico') }}" title="Limpiar filtro" style="color: #ef4444; font-size: 0.75rem; padding: 4px 6px; text-decoration: none; display: flex; align-items: center;">
+                        <i class="fa-solid fa-xmark"></i>
+                    </a>
+                @endif
+            </div>
+        </form>
 
         <div class="sidebar-list">
             @forelse($comprasNuevas as $compra)
@@ -62,6 +88,13 @@
                 <div style="padding: 20px; text-align: center; color: #666;">No hay registros</div>
             @endforelse
         </div>
+
+        {{-- PAGINACIÓN COMPACTA EN SIDEBAR --}}
+        @if($comprasNuevas instanceof \Illuminate\Pagination\LengthAwarePaginator && $comprasNuevas->hasPages())
+            <div class="sidebar-pagination" style="padding: 8px 5px; background: #000; border-top: 1px solid #222; display: flex; justify-content: center;">
+                {{ $comprasNuevas->links('pagination::bootstrap-5') }}
+            </div>
+        @endif
     </aside>
 
     {{-- 3. PANEL DERECHO (MAIN AREA) --}}
@@ -281,5 +314,62 @@
     .btn-cancel:hover { background-color: #2c2c2c; color: #ef4444; border-color: #ef4444; }
     .btn-save { flex: 2; padding: 12px; background-color: #2563eb; color: white; border: none; border-radius: 6px; font-size: 1.1rem; cursor: pointer; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 8px; }
     .btn-save:hover { background-color: #1d4ed8; }
+
+    /* PAGINACIÓN COMPACTA SIDEBAR */
+    .sidebar-pagination {
+        margin-top: auto;
+    }
+    .sidebar-pagination nav {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .sidebar-pagination .pagination {
+        display: flex;
+        list-style: none;
+        gap: 4px;
+        padding: 0;
+        margin: 0;
+        align-items: center;
+    }
+    .sidebar-pagination .page-item {
+        display: inline-block;
+    }
+    .sidebar-pagination .page-link {
+        background-color: #1e293b !important;
+        border: 1px solid #334155 !important;
+        color: #e2e8f0 !important;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .sidebar-pagination .page-item.active .page-link {
+        background-color: #3b82f6 !important;
+        border-color: #3b82f6 !important;
+        color: #ffffff !important;
+        font-weight: 700;
+    }
+    .sidebar-pagination .page-item.disabled .page-link {
+        background-color: #0f172a !important;
+        border-color: #1e293b !important;
+        color: #475569 !important;
+        opacity: 0.5;
+    }
+    .sidebar-pagination .page-link:hover:not(.disabled) {
+        background-color: #334155 !important;
+        color: #38bdf8 !important;
+    }
+    .sidebar-pagination .text-muted,
+    .sidebar-pagination p {
+        display: none !important;
+    }
+    .sidebar-pagination svg {
+        width: 12px;
+        height: 12px;
+    }
 </style>
 @endsection

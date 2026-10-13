@@ -9,6 +9,70 @@
         padding: 5px 0 20px 0;
     }
 
+    .erp-pagination {
+        margin-top: 25px;
+        display: flex;
+        justify-content: center;
+    }
+    .erp-pagination nav {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .erp-pagination .pagination {
+        display: flex;
+        list-style: none;
+        gap: 6px;
+        padding: 0;
+        margin: 0;
+        align-items: center;
+    }
+    .erp-pagination .page-item {
+        display: inline-block;
+    }
+    .erp-pagination .page-link {
+        background-color: #1e293b !important;
+        border: 1px solid #334155 !important;
+        color: #e2e8f0 !important;
+        padding: 7px 13px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.88rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    .erp-pagination .page-item.active .page-link {
+        background-color: #3b82f6 !important;
+        border-color: #3b82f6 !important;
+        color: #ffffff !important;
+        font-weight: 700;
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+    }
+    .erp-pagination .page-item.disabled .page-link {
+        background-color: #0f172a !important;
+        border-color: #1e293b !important;
+        color: #475569 !important;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    .erp-pagination .page-link:hover:not(.disabled) {
+        background-color: #334155 !important;
+        color: #38bdf8 !important;
+        border-color: #38bdf8 !important;
+    }
+    .erp-pagination .text-muted,
+    .erp-pagination p {
+        color: #94a3b8 !important;
+        font-size: 0.85em;
+        margin-bottom: 12px !important;
+    }
+    .erp-pagination svg {
+        width: 16px;
+        height: 16px;
+    }
+
     .consulta-header {
         margin-bottom: 20px;
     }
@@ -176,6 +240,12 @@
         </div>
     </div>
 
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+        <span style="color: #94a3b8; font-size: 0.9rem;">
+            Total Productos: <strong style="color: #38bdf8;">{{ $productos instanceof \Illuminate\Pagination\LengthAwarePaginator ? $productos->total() : $productos->count() }}</strong>
+        </span>
+    </div>
+
     {{-- =========================
          LISTA DE PRODUCTOS
     ========================== --}}
@@ -249,6 +319,13 @@
             @endforelse
         </tbody>
     </table>
+
+    {{-- PAGINACIÓN --}}
+    @if($productos instanceof \Illuminate\Pagination\LengthAwarePaginator)
+        <div class="erp-pagination">
+            {{ $productos->withQueryString()->onEachSide(1)->links('pagination::bootstrap-5') }}
+        </div>
+    @endif
 
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

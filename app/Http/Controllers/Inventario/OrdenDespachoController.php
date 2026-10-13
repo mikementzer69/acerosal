@@ -16,12 +16,37 @@ class OrdenDespachoController extends Controller
     /**
      * LISTADO DE ÓRDENES
      */
-    public function index()
+    public function index(Request $request)
     {
-        $ordenes = OrdenDespacho::with(['cliente', 'vendedor'])
-            ->where('id_empresa', session('idEmpresa'))
-            ->orderByDesc('id_orden_despacho')
-            ->get();
+        $idEmpresa = session('idEmpresa');
+        $query = OrdenDespacho::with(['cliente', 'vendedor'])
+            ->orderByDesc('id_orden_despacho');
+
+        if ($idEmpresa) {
+            $query->where('id_empresa', $idEmpresa);
+        }
+
+        // Búsqueda por número de orden, cliente o vendedor
+        if ($request->filled('busqueda')) {
+            $busqueda = trim($request->busqueda);
+            $query->where(function ($q) use ($busqueda) {
+                $q->where('numero_orden', 'like', "%{$busqueda}%")
+                  ->orWhereHas('cliente', function ($qc) use ($busqueda) {
+                      $qc->where('nombre', 'like', "%{$busqueda}%");
+                  })
+                  ->orWhereHas('vendedor', function ($qv) use ($busqueda) {
+                      $qv->where('nombre', 'like', "%{$busqueda}%")
+                         ->orWhere('apellidos', 'like', "%{$busqueda}%");
+                  });
+            });
+        }
+
+        // Filtro por estado
+        if ($request->filled('estado')) {
+            $query->where('estado', trim($request->estado));
+        }
+
+        $ordenes = $query->paginate(15)->withQueryString();
 
         return view('inventario.despacho.index', compact('ordenes'));
     }

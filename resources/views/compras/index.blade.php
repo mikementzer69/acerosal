@@ -18,11 +18,28 @@
         </a>
     </div>
 
-    {{-- BARRA DE FILTROS (Visualmente lista para cuando quieras programar búsqueda) --}}
-    <div style="background-color: #222; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #444; display: flex; align-items: center; gap: 10px;">
-        <i class="fa-solid fa-magnifying-glass" style="color: #666;"></i>
-        <input type="text" placeholder="Buscar por número de factura o proveedor..."
-               style="background: transparent; border: none; color: #fff; width: 100%; outline: none; font-size: 0.95rem;">
+    {{-- BARRA DE FILTROS Y BÚSQUEDA --}}
+    <form method="GET" action="{{ route('compras.index') }}" class="erp-search-form" style="margin-bottom: 15px;">
+        <div style="background-color: #1e293b; padding: 10px 16px; border-radius: 8px; border: 1px solid #334155; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <i class="fa-solid fa-magnifying-glass" style="color: #64748b;"></i>
+            <input type="text"
+                   name="busqueda"
+                   value="{{ request('busqueda') }}"
+                   placeholder="Buscar por número de factura o proveedor..."
+                   style="background: transparent; border: none; color: #fff; flex: 1; min-width: 200px; outline: none; font-size: 0.95rem;">
+            <button type="submit" class="btn-primary" style="padding: 7px 16px; font-size: 0.88rem;">
+                <i class="fa-solid fa-magnifying-glass"></i> Buscar
+            </button>
+            <a href="{{ route('compras.index') }}" class="btn-secondary" style="padding: 7px 16px; font-size: 0.88rem; text-decoration: none;">
+                <i class="fa-solid fa-eraser"></i> Limpiar
+            </a>
+        </div>
+    </form>
+
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+        <span style="color: #94a3b8; font-size: 0.9rem;">
+            Total Facturas: <strong style="color: #38bdf8;">{{ $compras instanceof \Illuminate\Pagination\LengthAwarePaginator ? $compras->total() : $compras->count() }}</strong>
+        </span>
     </div>
 
     @if(session('success'))
@@ -138,19 +155,82 @@
         </tbody>
     </table>
 </div>
-    {{-- Paginación (si la tienes implementada) --}}
-    @if(method_exists($compras, 'links'))
-        <div style="margin-top: 20px;">
-            {{ $compras->links() }}
+    {{-- Paginación --}}
+    @if($compras instanceof \Illuminate\Pagination\LengthAwarePaginator)
+        <div class="erp-pagination">
+            {{ $compras->withQueryString()->onEachSide(1)->links('pagination::bootstrap-5') }}
         </div>
     @endif
 
 </div>
 
-{{-- Efecto Hover para las filas --}}
+{{-- Estilos para la tabla y paginación en modo oscuro --}}
 <style>
     .erp-table tbody tr:hover {
         background-color: #1a1a1a;
+    }
+    .erp-pagination {
+        margin-top: 25px;
+        display: flex;
+        justify-content: center;
+    }
+    .erp-pagination nav {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .erp-pagination .pagination {
+        display: flex;
+        list-style: none;
+        gap: 6px;
+        padding: 0;
+        margin: 0;
+        align-items: center;
+    }
+    .erp-pagination .page-item {
+        display: inline-block;
+    }
+    .erp-pagination .page-link {
+        background-color: #1e293b !important;
+        border: 1px solid #334155 !important;
+        color: #e2e8f0 !important;
+        padding: 7px 13px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.88rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    .erp-pagination .page-item.active .page-link {
+        background-color: #3b82f6 !important;
+        border-color: #3b82f6 !important;
+        color: #ffffff !important;
+        font-weight: 700;
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+    }
+    .erp-pagination .page-item.disabled .page-link {
+        background-color: #0f172a !important;
+        border-color: #1e293b !important;
+        color: #475569 !important;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    .erp-pagination .page-link:hover:not(.disabled) {
+        background-color: #334155 !important;
+        color: #38bdf8 !important;
+        border-color: #38bdf8 !important;
+    }
+    .erp-pagination .text-muted,
+    .erp-pagination p {
+        color: #94a3b8 !important;
+        font-size: 0.85em;
+        margin-bottom: 12px !important;
+    }
+    .erp-pagination svg {
+        width: 16px;
+        height: 16px;
     }
 </style>
 

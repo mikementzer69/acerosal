@@ -151,13 +151,21 @@ class InventarioProductoController extends Controller
 
         if ($request->filled('id_familia')) { $query->where('id_familia', $request->id_familia); }
         if ($request->filled('id_producto')) { $query->where('id_producto', $request->id_producto); }
+        if ($request->filled('busqueda')) {
+            $busqueda = trim($request->busqueda);
+            $query->where(function($q) use ($busqueda) {
+                $q->where('descripcion', 'like', "%{$busqueda}%")
+                  ->orWhere('codigo', 'like', "%{$busqueda}%");
+            });
+        }
 
         $productos = $query->select(
             'id_producto', 'codigo', 'descripcion', 'unidad_medida_longitud',
             'stock_actual', 'stock_metros', 'peso_total_libras', 'milimetros', 'pulgadas'
         )
         ->orderBy('descripcion')
-        ->get();
+        ->paginate(15)
+        ->withQueryString();
 
         return view('inventario.productos_index', compact('productos', 'familias'));
     }

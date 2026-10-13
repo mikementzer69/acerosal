@@ -61,13 +61,34 @@ class InventarioController extends Controller
         ]);
     }
 
-    public function automatico()
+    public function automatico(Request $request)
     {
-        $comprasNuevas = Compra::where('eliminado', 0)
-            ->where('id_empresa', session('idEmpresa'))
+        $idEmpresa = session('idEmpresa');
+        $query = Compra::with('proveedor')
+            ->where('eliminado', 0)
+            ->where('id_empresa', $idEmpresa)
             ->orderBy('fecha_ingreso', 'desc')
-            ->orderBy('id_compra', 'desc')
-            ->get();
+            ->orderBy('id_compra', 'desc');
+
+        if ($request->filled('busqueda')) {
+            $busqueda = trim($request->busqueda);
+            $query->where(function ($q) use ($busqueda) {
+                $q->where('numero_factura', 'like', "%{$busqueda}%")
+                  ->orWhereHas('proveedor', function ($qp) use ($busqueda) {
+                      $qp->where('nombre', 'like', "%{$busqueda}%");
+                  });
+            });
+        }
+
+        if ($request->filled('estado')) {
+            if ($request->estado === 'pendiente') {
+                $query->where('nueva_compra', 1);
+            } elseif ($request->estado === 'ingresado') {
+                $query->where('nueva_compra', 0);
+            }
+        }
+
+        $comprasNuevas = $query->paginate(12)->withQueryString();
 
         return view('inventario.automatico', compact('comprasNuevas'));
     }
