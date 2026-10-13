@@ -29,18 +29,19 @@
                     <small>Este documento no ha descontado metros ni libras de inventario, ni generado movimientos en el Kardex.</small>
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
                 <a href="{{ route('inventario.despacho.imprimir_cotizacion', $orden->id_orden_despacho) }}"
                    target="_blank"
-                   class="btn btn-warning fw-bold px-3 shadow-sm text-dark"
-                   style="background-color: #f59e0b; border: none;">
+                   class="btn btn-sm btn-warning fw-semibold shadow-sm text-dark"
+                   style="font-size: 12px; padding: 5px 12px; background-color: #f59e0b; border: none;">
                     <i class="fa-solid fa-file-invoice-dollar me-1"></i> Imprimir Cotización
                 </a>
                 <form action="{{ route('inventario.despacho.convertir', $orden->id_orden_despacho) }}"
                       method="POST"
+                      style="display: inline; margin: 0;"
                       onsubmit="return confirm('¿Confirmas convertir la Cotización #{{ $orden->numero_orden }} a Orden de Despacho y procesar la salida física de inventario?');">
                     @csrf
-                    <button type="submit" class="btn btn-success fw-bold px-3 shadow-sm" style="background-color: #10b981; border: none;">
+                    <button type="submit" class="btn btn-sm btn-success fw-semibold shadow-sm" style="font-size: 12px; padding: 5px 12px; background-color: #10b981; border: none;">
                         <i class="fa-solid fa-truck-fast me-1"></i> Convertir a Despacho
                     </button>
                 </form>
@@ -254,29 +255,29 @@
     </div>
 
     {{-- ACCIONES --}}
-    <div class="mt-4 text-end">
+    <div class="mt-4 d-flex justify-content-end align-items-center gap-2 flex-wrap">
         @if($orden->estado === 'COTIZACION')
             <form action="{{ route('inventario.despacho.convertir', $orden->id_orden_despacho) }}"
                   method="POST"
-                  style="display: inline-block;"
+                  style="display: inline; margin: 0;"
                   onsubmit="return confirm('¿Confirmas convertir la Cotización #{{ $orden->numero_orden }} a Orden de Despacho y procesar la salida física de inventario?');">
                 @csrf
-                <button type="submit" class="btn btn-success px-4 shadow-sm fw-bold">
+                <button type="submit" class="btn btn-sm btn-success fw-semibold shadow-sm" style="font-size: 12px; padding: 6px 14px; background-color: #10b981; border: none;">
                     <i class="fa-solid fa-truck-fast me-1"></i> Convertir a Despacho
                 </button>
             </form>
         @endif
         <a href="{{ route('inventario.despacho.imprimir_cotizacion', $orden->id_orden_despacho) }}"
            target="_blank"
-           class="btn btn-warning px-4 shadow-sm fw-bold ms-2 text-dark"
-           style="background-color: #f59e0b; border: none;">
-            <i class="fa-solid fa-file-invoice-dollar me-1"></i> Imprimir Cotización Valorizada
+           class="btn btn-sm btn-warning fw-semibold shadow-sm text-dark"
+           style="font-size: 12px; padding: 6px 14px; background-color: #f59e0b; border: none;">
+            <i class="fa-solid fa-file-invoice-dollar me-1"></i> Imprimir Cotización
         </a>
-        <button type="button" onclick="window.print()" class="btn btn-outline-dark px-4 shadow-sm ms-2">
-            <i class="fa-solid fa-print me-1"></i> Imprimir Hoja Despacho
+        <button type="button" onclick="window.print()" class="btn btn-sm btn-outline-secondary fw-semibold shadow-sm" style="font-size: 12px; padding: 6px 14px;">
+            <i class="fa-solid fa-print me-1"></i> Hoja Despacho
         </button>
-        <a href="{{ route('inventario.despacho.index') }}" class="btn btn-secondary px-4 shadow-sm ms-2">
-            Volver al Listado
+        <a href="{{ route('inventario.despacho.index') }}" class="btn btn-sm btn-secondary fw-semibold shadow-sm" style="font-size: 12px; padding: 6px 14px;">
+            <i class="fa-solid fa-arrow-left me-1"></i> Volver al Listado
         </a>
     </div>
 
