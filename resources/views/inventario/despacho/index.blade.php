@@ -62,7 +62,7 @@
                         <td class="erp-actions-cell" style="text-align:center; white-space: nowrap;">
 
                             {{-- BOTÓN CONVERTIR A DESPACHO (SI ES COTIZACIÓN) --}}
-                            @if($o->estado === 'COTIZACION')
+                            @if(in_array(strtoupper(trim($o->estado ?? '')), ['COTIZACION', 'BORRADOR']))
                                 <form action="{{ route('inventario.despacho.convertir', $o->id_orden_despacho) }}"
                                       method="POST"
                                       style="display:inline;"

@@ -20,7 +20,7 @@
     @endif
 
     {{-- BANNER DE ESTADO COTIZACIÓN --}}
-    @if($orden->estado === 'COTIZACION')
+    @if(in_array(strtoupper(trim($orden->estado ?? '')), ['COTIZACION', 'BORRADOR']))
         <div class="alert alert-warning d-flex align-items-center justify-content-between p-3 mb-4 shadow-sm border-0" style="background-color: #fef3c7; border-left: 5px solid #f59e0b !important; color: #92400e;">
             <div class="d-flex align-items-center">
                 <i class="fa-solid fa-circle-info fs-2 me-3" style="color: #d97706;"></i>
@@ -256,16 +256,20 @@
 
     {{-- ACCIONES --}}
     <div class="mt-4 d-flex justify-content-end align-items-center gap-2 flex-wrap">
-        @if($orden->estado === 'COTIZACION')
+        @if(in_array(strtoupper(trim($orden->estado ?? '')), ['COTIZACION', 'BORRADOR']))
             <form action="{{ route('inventario.despacho.convertir', $orden->id_orden_despacho) }}"
                   method="POST"
                   style="display: inline; margin: 0;"
                   onsubmit="return confirm('¿Confirmas convertir la Cotización #{{ $orden->numero_orden }} a Orden de Despacho y procesar la salida física de inventario?');">
                 @csrf
-                <button type="submit" class="btn btn-sm btn-success fw-semibold shadow-sm" style="font-size: 12px; padding: 6px 14px; background-color: #10b981; border: none;">
+                <button type="submit" class="btn btn-sm btn-success fw-semibold shadow-sm" style="font-size: 12px; padding: 6px 14px; background-color: #10b981; border: none; color: white;">
                     <i class="fa-solid fa-truck-fast me-1"></i> Convertir a Despacho
                 </button>
             </form>
+        @elseif(strtoupper(trim($orden->estado ?? '')) === 'FINALIZADA')
+            <span class="badge bg-light text-success border border-success-subtle fw-semibold shadow-sm" style="font-size: 12px; padding: 7px 12px;">
+                <i class="fa-solid fa-circle-check text-success me-1"></i> Despacho Procesado
+            </span>
         @endif
         <a href="{{ route('inventario.despacho.imprimir_cotizacion', $orden->id_orden_despacho) }}"
            target="_blank"
