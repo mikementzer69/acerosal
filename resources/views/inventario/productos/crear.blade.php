@@ -105,8 +105,9 @@
             <div class="form-group">
                 <label>Stock Metros (Inicial)</label>
                 <input type="number"
+                       step="0.0001"
                        name="stock_metros"
-                       value="0.00"
+                       value="0.0000"
                        readonly
                        style="background-color: #e9ecef; color: #333333; cursor: not-allowed; font-weight: bold;">
             </div>

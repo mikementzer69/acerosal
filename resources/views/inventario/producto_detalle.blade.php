@@ -47,7 +47,7 @@
             </h3>
 
             <span class="badge bg-info text-dark mt-2">
-                Total Disponible: {{ number_format($producto->stock_metros, 2) }} Unidades
+                Total Disponible: {{ number_format($producto->stock_metros, 4) }} Mts
             </span>
             <span class="badge bg-success mt-2">
                 Peso Total: {{ number_format($producto->peso_total_libras, 2) }} Lbs
@@ -116,10 +116,10 @@
                                             <span class="badge bg-success">NUEVA</span>
                                         @endif
                                     </td>
-                                    <td class="text-end">{{ number_format($pieza->cantidad_metros_inicial, 2) }} m</td>
+                                    <td class="text-end">{{ number_format($pieza->cantidad_metros_inicial, 4) }} m</td>
 
                                     <td class="text-end {{ $pieza->cantidad_metros_actual < $pieza->cantidad_metros_inicial ? 'text-danger fw-bold' : '' }}">
-                                        {{ number_format($pieza->cantidad_metros_actual, 2) }} m
+                                        {{ number_format($pieza->cantidad_metros_actual, 4) }} m
                                     </td>
 
                                     <td class="text-end">{{ number_format($pieza->peso_libras_actual, 2) }} lb</td>

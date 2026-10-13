@@ -324,13 +324,21 @@
     </div>
 
     <input type="hidden" name="detalles" id="detalles">
+    <input type="hidden" name="tipo_guardado" id="tipo_guardado" value="despacho">
 
-    <div style="margin-top: 20px; display: flex; gap: 10px; align-items: center;">
-        <button type="submit" class="btn-primary" style="padding: 10px 20px;">
-            <i class="fa-solid fa-save"></i> Guardar orden
+    <div style="margin-top: 25px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <button type="button" id="btnCotizacion" onclick="enviarFormulario('cotizacion')"
+                style="background-color: #f59e0b; color: #111827; padding: 11px 22px; border: none; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">
+            <i class="fa-solid fa-file-lines"></i> Guardar como Cotización
         </button>
+
+        <button type="button" id="btnDespacho" onclick="enviarFormulario('despacho')"
+                style="background-color: #10b981; color: #ffffff; padding: 11px 22px; border: none; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">
+            <i class="fa-solid fa-truck-fast"></i> Despachar de Inmediato
+        </button>
+
         <a href="{{ route('inventario.despacho.index') }}"
-           style="background-color: #6c757d; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: 600; font-size: 14px;">
+           style="background-color: #6c757d; color: white; padding: 11px 20px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;">
             <i class="fa-solid fa-ban"></i> Cancelar
         </a>
     </div>
@@ -539,7 +547,7 @@ document.getElementById('lote').addEventListener('change', function () {
         .then(data => {
             piezaSelect.innerHTML = '<option value="">Seleccione Pieza...</option>';
             data.forEach(p => {
-                piezaSelect.innerHTML += `<option value="${p.id_pieza}" data-metros="${p.cantidad_metros_actual}">${p.codigo} — ${parseFloat(p.cantidad_metros_actual).toFixed(2)} mts</option>`;
+                piezaSelect.innerHTML += `<option value="${p.id_pieza}" data-metros="${p.cantidad_metros_actual}" data-lote="${p.id_lote || idLote}">${p.codigo} — ${parseFloat(p.cantidad_metros_actual).toFixed(2)} mts</option>`;
             });
             piezaSelect.disabled = false;
         });
@@ -562,8 +570,8 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
     const precioInp = document.getElementById('precio_venta_sin_iva');
     const tipoPrecioInp = document.getElementById('tipo_precio');
 
-    if (!familiaSel.value || !productoSel.value || !parseFloat(cantidadInp.value)) {
-        alert('Complete los campos obligatorios (Calidad, Producto y Cantidad).');
+    if (!familiaSel.value || !productoSel.value || !loteSel.value || !parseFloat(cantidadInp.value)) {
+        alert('Complete los campos obligatorios (Calidad, Producto, Lote y Cantidad).');
         return;
     }
 
@@ -687,10 +695,15 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
         let dTolLbs = dTolMts * factorProducto;
         let dPeso = (dMetros + dTolMts) * factorProducto;
 
+        let loteVal = loteSel.value;
+        if (!loteVal && optOriginal && optOriginal.getAttribute('data-lote')) {
+            loteVal = optOriginal.getAttribute('data-lote');
+        }
+
         detalles.push({
             id_familia: familiaSel.value,
             id_producto: productoSel.value,
-            id_lote: loteSel.value,
+            id_lote: loteVal,
             id_pieza: piezaObj.id,
             codigo_pieza: piezaObj.label, // Para mostrarlo bonito en la tabla
             medida_solicitada: medidaSolicitadaInp.value,
@@ -727,7 +740,7 @@ function renderTabla() {
                 <td style="color: #60a5fa; font-style: italic;">${d.medida_solicitada ? d.medida_solicitada : '-'}</td>
                 <td>${d.id_lote}</td>
                 <td>${d.codigo_pieza ? d.codigo_pieza : d.id_pieza}</td>
-                <td style="text-align:right;">${d.cantidad_metros.toFixed(2)}</td>
+                <td style="text-align:right;">${d.cantidad_metros.toFixed(4)}</td>
                 <td style="text-align:right; color: #ffc107;">+ ${d.merma_mts.toFixed(4)}</td>
                 <td style="text-align:right; color: #ffc107;">+ ${d.merma_lbs.toFixed(4)}</td>
                 <td style="text-align:right;"><strong>${d.cantidad_libras.toFixed(2)}</strong></td>
@@ -854,8 +867,10 @@ document.getElementById('formDespacho').addEventListener('submit', function(e) {
         }
     }
 
-    const btn = this.querySelector('button[type="submit"]');
-    btn.disabled = true;
+    const btnCot = document.getElementById('btnCotizacion');
+    const btnDesp = document.getElementById('btnDespacho');
+    if (btnCot) btnCot.disabled = true;
+    if (btnDesp) btnDesp.disabled = true;
 
     fetch(this.action, {
         method: 'POST',
@@ -868,11 +883,25 @@ document.getElementById('formDespacho').addEventListener('submit', function(e) {
             window.location.href = "{{ route('inventario.despacho.index') }}";
         } else {
             alert(data.message);
-            btn.disabled = false;
+            if (btnCot) btnCot.disabled = false;
+            if (btnDesp) btnDesp.disabled = false;
         }
     })
-    .catch(() => { btn.disabled = false; });
+    .catch(() => { 
+        if (btnCot) btnCot.disabled = false;
+        if (btnDesp) btnDesp.disabled = false;
+    });
 });
+
+function enviarFormulario(tipo) {
+    document.getElementById('tipo_guardado').value = tipo;
+    const form = document.getElementById('formDespacho');
+    if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+    } else {
+        form.dispatchEvent(new Event('submit', { cancelable: true }));
+    }
+}
 
 $(document).ready(function() {
     $('select[name="id_cliente"]').select2({

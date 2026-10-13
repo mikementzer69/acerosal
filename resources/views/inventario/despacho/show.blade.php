@@ -3,7 +3,50 @@
 @section('content')
 <div class="container py-3">
 
-    <h3 class="fw-bold text-dark mb-4">Orden de Despacho</h3>
+    <h3 class="fw-bold text-dark mb-4">
+        @if($orden->estado === 'COTIZACION')
+            <i class="fa-solid fa-file-lines text-warning me-2"></i> Cotización #{{ $orden->numero_orden }}
+        @else
+            <i class="fa-solid fa-file-invoice text-primary me-2"></i> Orden de Despacho #{{ $orden->numero_orden }}
+        @endif
+    </h3>
+
+    {{-- ALERTAS DE SESIÓN --}}
+    @if(session('success'))
+        <div class="alert alert-success shadow-sm mb-4">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger shadow-sm mb-4">{{ session('error') }}</div>
+    @endif
+
+    {{-- BANNER DE ESTADO COTIZACIÓN --}}
+    @if($orden->estado === 'COTIZACION')
+        <div class="alert alert-warning d-flex align-items-center justify-content-between p-3 mb-4 shadow-sm border-0" style="background-color: #fef3c7; border-left: 5px solid #f59e0b !important; color: #92400e;">
+            <div class="d-flex align-items-center">
+                <i class="fa-solid fa-circle-info fs-2 me-3" style="color: #d97706;"></i>
+                <div>
+                    <h6 class="mb-0 fw-bold">DOCUMENTO EN ESTADO DE COTIZACIÓN</h6>
+                    <small>Este documento no ha descontado metros ni libras de inventario, ni generado movimientos en el Kardex.</small>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ route('inventario.despacho.imprimir_cotizacion', $orden->id_orden_despacho) }}"
+                   target="_blank"
+                   class="btn btn-warning fw-bold px-3 shadow-sm text-dark"
+                   style="background-color: #f59e0b; border: none;">
+                    <i class="fa-solid fa-file-invoice-dollar me-1"></i> Imprimir Cotización
+                </a>
+                <form action="{{ route('inventario.despacho.convertir', $orden->id_orden_despacho) }}"
+                      method="POST"
+                      onsubmit="return confirm('¿Confirmas convertir la Cotización #{{ $orden->numero_orden }} a Orden de Despacho y procesar la salida física de inventario?');">
+                    @csrf
+                    <button type="submit" class="btn btn-success fw-bold px-3 shadow-sm" style="background-color: #10b981; border: none;">
+                        <i class="fa-solid fa-truck-fast me-1"></i> Convertir a Despacho
+                    </button>
+                </form>
+            </div>
+        </div>
+    @endif
 
     {{-- ================= ENCABEZADO MEJORADO ================= --}}
     <div class="card mb-4 border-0 shadow-sm">
@@ -38,7 +81,15 @@
                 {{-- Segunda Fila --}}
                 <div class="col-md-3 mt-3 border-top pt-3">
                     <strong class="text-dark small d-block mb-1 text-uppercase">Estado de Orden:</strong>
-                    <span class="badge {{ $orden->estado === 'ACTIVA' ? 'bg-success' : 'bg-info text-dark' }} px-3 py-2 shadow-sm">
+                    @php
+                        $badgeClass = match($orden->estado) {
+                            'COTIZACION' => 'bg-warning text-dark',
+                            'FINALIZADA', 'DESPACHADA', 'ACTIVA' => 'bg-success text-white',
+                            'ANULADA' => 'bg-danger text-white',
+                            default => 'bg-secondary text-white'
+                        };
+                    @endphp
+                    <span class="badge {{ $badgeClass }} px-3 py-2 shadow-sm">
                         {{ $orden->estado }}
                     </span>
                 </div>
@@ -135,7 +186,7 @@
                                     </span>
                                 </td>
 
-                                <td class="text-end fw-bold">{{ number_format($d->cantidad_metros, 2) }}</td>
+                                <td class="text-end fw-bold">{{ number_format($d->cantidad_metros, 4) }}</td>
 
                             </tr>
 
@@ -152,7 +203,7 @@
                         <tr>
                             {{-- Colspan ajustado a 5 por la nueva columna de ubicación --}}
                             <th colspan="5" class="text-end py-2">TOTAL ACUMULADO</th>
-                            <th class="text-end text-primary">{{ number_format($totalMetros, 2) }}</th>
+                            <th class="text-end text-primary">{{ number_format($totalMetros, 4) }}</th>
 
                         </tr>
                     </tfoot>
@@ -163,15 +214,47 @@
 
     {{-- ACCIONES --}}
     <div class="mt-4 text-end">
-        @if($orden->estado === 'BORRADOR')
-            <a href="#" class="btn btn-success px-4 shadow-sm">
-                Despachar orden
-            </a>
+        @if($orden->estado === 'COTIZACION')
+            <form action="{{ route('inventario.despacho.convertir', $orden->id_orden_despacho) }}"
+                  method="POST"
+                  style="display: inline-block;"
+                  onsubmit="return confirm('¿Confirmas convertir la Cotización #{{ $orden->numero_orden }} a Orden de Despacho y procesar la salida física de inventario?');">
+                @csrf
+                <button type="submit" class="btn btn-success px-4 shadow-sm fw-bold">
+                    <i class="fa-solid fa-truck-fast me-1"></i> Convertir a Despacho
+                </button>
+            </form>
         @endif
+        <a href="{{ route('inventario.despacho.imprimir_cotizacion', $orden->id_orden_despacho) }}"
+           target="_blank"
+           class="btn btn-warning px-4 shadow-sm fw-bold ms-2 text-dark"
+           style="background-color: #f59e0b; border: none;">
+            <i class="fa-solid fa-file-invoice-dollar me-1"></i> Imprimir Cotización Valorizada
+        </a>
+        <button type="button" onclick="window.print()" class="btn btn-outline-dark px-4 shadow-sm ms-2">
+            <i class="fa-solid fa-print me-1"></i> Imprimir Hoja Despacho
+        </button>
         <a href="{{ route('inventario.despacho.index') }}" class="btn btn-secondary px-4 shadow-sm ms-2">
             Volver al Listado
         </a>
     </div>
 
 </div>
+
+<style>
+@media print {
+    .btn, .alert, header, nav, .sidebar, footer {
+        display: none !important;
+    }
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+    .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+    }
+}
+</style>
 @endsection

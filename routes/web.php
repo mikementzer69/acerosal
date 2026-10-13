@@ -408,6 +408,14 @@ Route::get(
 Route::post('/inventario/despacho/anular/{id}', [OrdenDespachoController::class, 'anular'])
     ->name('inventario.despacho.anular');
 
+// Ruta para convertir cotización a orden de despacho
+Route::post('/inventario/despacho/convertir/{id}', [OrdenDespachoController::class, 'convertirADespacho'])
+    ->name('inventario.despacho.convertir');
+
+// Ruta para imprimir cotización valorizada
+Route::get('/inventario/despacho/{id}/imprimir-cotizacion', [OrdenDespachoController::class, 'imprimirCotizacion'])
+    ->name('inventario.despacho.imprimir_cotizacion');
+
 Route::get(
     '/inventario/productos-por-familia/{id_familia}',
     [App\Http\Controllers\Inventario\OrdenDespachoController::class, 'productosPorFamilia']

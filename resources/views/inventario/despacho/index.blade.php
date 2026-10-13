@@ -49,6 +49,7 @@
                         <td style="text-align:center;">
                             @php
                                 $color = match($o->estado) {
+                                    'COTIZACION' => 'warning text-dark',
                                     'BORRADOR' => 'secondary',
                                     'FINALIZADA', 'DESPACHADA' => 'success',
                                     'ANULADA' => 'danger',
@@ -58,7 +59,20 @@
                             <span class="badge bg-{{ $color }}">{{ $o->estado }}</span>
                         </td>
 
-                        <td class="erp-actions-cell" style="text-align:center;">
+                        <td class="erp-actions-cell" style="text-align:center; white-space: nowrap;">
+
+                            {{-- BOTÓN CONVERTIR A DESPACHO (SI ES COTIZACIÓN) --}}
+                            @if($o->estado === 'COTIZACION')
+                                <form action="{{ route('inventario.despacho.convertir', $o->id_orden_despacho) }}"
+                                      method="POST"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('¿Confirmas convertir la Cotización #{{ $o->numero_orden }} a Orden de Despacho y descargar inventario?');">
+                                    @csrf
+                                    <button type="submit" class="btn-table" style="background-color: #10b981; color: #fff;" title="Convertir a Despacho">
+                                        <i class="fa-solid fa-truck-fast"></i>
+                                    </button>
+                                </form>
+                            @endif
 
                             {{-- BOTÓN VER (ESTILO PRODUCTOS) --}}
                             <a href="{{ route('inventario.despacho.show', $o->id_orden_despacho) }}"
@@ -66,14 +80,23 @@
                                 <i class="fa-solid fa-eye"></i>
                             </a>
 
-                            {{-- BOTÓN ANULAR (ESTILO PRODUCTOS) --}}
+                            {{-- BOTÓN IMPRIMIR COTIZACIÓN VALORIZADA --}}
+                            <a href="{{ route('inventario.despacho.imprimir_cotizacion', $o->id_orden_despacho) }}"
+                               target="_blank"
+                               class="btn-table"
+                               style="background-color: #f59e0b; color: #111827;"
+                               title="Imprimir Cotización Valorizada">
+                                <i class="fa-solid fa-file-invoice-dollar"></i>
+                            </a>
+
+                            {{-- BOTÓN ANULAR / CANCELAR --}}
                             @if($o->estado != 'ANULADA' && ($o->facturado ?? 0) == 0)
                                 <form action="{{ route('inventario.despacho.anular', $o->id_orden_despacho) }}"
                                       method="POST"
                                       style="display:inline;"
-                                      onsubmit="return confirm('¿Mago, seguro de anular esta orden? El stock regresará al inventario.');">
+                                      onsubmit="return confirm('{{ $o->estado === 'COTIZACION' ? '¿Seguro de cancelar esta cotización?' : '¿Seguro de anular esta orden? El stock regresará al inventario.' }}');">
                                     @csrf
-                                    <button type="submit" class="btn-table btn-delete" title="Anular Orden">
+                                    <button type="submit" class="btn-table btn-delete" title="{{ $o->estado === 'COTIZACION' ? 'Cancelar Cotización' : 'Anular Orden' }}">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </form>

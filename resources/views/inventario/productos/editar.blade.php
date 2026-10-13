@@ -111,7 +111,8 @@
             <div class="form-group">
                 <label>Stock Metros (Actual)</label>
                 <input type="number"
-                       value="{{ $producto->stock_metros }}"
+                       step="0.0001"
+                       value="{{ number_format((float)($producto->stock_metros ?? 0), 4, '.', '') }}"
                        readonly
                        style="background-color: #e9ecef; color: #333333; cursor: not-allowed; font-weight: bold;">
             </div>

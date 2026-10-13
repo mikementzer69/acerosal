@@ -70,7 +70,7 @@
             <tr style="background-color: #f0f7ff; font-weight: bold;">
                 <td style="text-align: center;">{{ $fechaInicio ? date('d/m/Y', strtotime($fechaInicio)) : '---' }}</td>
                 <td colspan="5" style="text-align: right;">SALDO APERTURA:</td>
-                <td class="col-saldo">{{ number_format($saldoInicial, 2) }}</td>
+                <td class="col-saldo">{{ number_format($saldoInicial, 4) }}</td>
                 <td class="col-comentario">Inventario inicial</td>
             </tr>
             @endif
@@ -83,7 +83,7 @@
                         {{ strtoupper(str_replace('_', ' ', $m->tipo)) }}
                     </span>
                 </td>
-                <td class="text-end">{{ number_format($m->cantidad, 2) }}</td>
+                <td class="text-end">{{ number_format($m->cantidad, 4) }}</td>
                 <td class="text-end" style="color: #b45309;">{{ number_format($m->tolerancia_aplicada ?? 0, 4) }}</td>
                 <td class="text-end" style="color: #2563eb; font-weight: bold;">
                     @php $pesoReal = floatval($m->peso_neto_libras) > 0 ? $m->peso_neto_libras : $m->peso; @endphp
@@ -92,7 +92,7 @@
                 <td class="text-end" style="font-weight: bold;">
                     {{ number_format($m->cantidad_total_retirada ?? $m->cantidad, 4) }}
                 </td>
-                <td class="col-saldo">{{ number_format($m->saldo_dinamico_global, 2) }}</td>
+                <td class="col-saldo">{{ number_format($m->saldo_dinamico_global, 4) }}</td>
                 <td class="col-comentario">{{ $m->origen }} - {{ $m->comentario ?? 'N/A' }}</td>
             </tr>
             @endforeach
@@ -101,11 +101,11 @@
             <tr style="background-color: #f1f5f9; border-top: 2px solid #2563eb;">
                 <td colspan="5" style="text-align: right; font-weight: bold; padding: 8px;">RESUMEN DEL PERIODO:</td>
                 <td class="text-end" style="padding: 8px;">
-                    <span style="color: #16a34a;">+ {{ number_format($totalEntradas, 2) }}</span><br>
-                    <span style="color: #dc2626;">- {{ number_format($totalSalidas, 2) }}</span>
+                    <span style="color: #16a34a;">+ {{ number_format($totalEntradas, 4) }}</span><br>
+                    <span style="color: #dc2626;">- {{ number_format($totalSalidas, 4) }}</span>
                 </td>
                 <td class="text-end" style="font-weight: bold; background-color: #fffbeb; padding: 8px; font-size: 10px; color: #b45309;">
-                    {{ number_format($saldoFinal, 2) }}
+                    {{ number_format($saldoFinal, 4) }}
                     <div style="font-size: 6px; font-weight: normal; color: #64748b;">STOCK FINAL MTS</div>
                 </td>
                 <td></td>

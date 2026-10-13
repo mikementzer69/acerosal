@@ -199,7 +199,7 @@
             ? $m->cantidad_total_retirada
             : $m->cantidad;
     @endphp
-    {{ number_format($valorReal, 2) }}
+    {{ number_format($valorReal, 4) }}
 </td>
 
             {{-- Merma en Metros (Tolerancia) --}}
@@ -217,12 +217,12 @@
 {{-- Columna Total Salida --}}
         <td class="text-end">
             {{-- 🔮 MAGIA: Sin condiciones. Si en la DB hay 300, aquí pone 300. --}}
-            {{ number_format($m->cantidad_total_retirada, 2) }}
+            {{ number_format($m->cantidad_total_retirada, 4) }}
         </td>
 
             {{-- Saldo Dinámico --}}
             <td class="text-end" style="color: #fbbf24; font-weight: bold;">
-                {{ number_format($m->saldo_dinamico_global, 2) }} mts
+                {{ number_format($m->saldo_dinamico_global, 4) }} mts
             </td>
 
                 <td style="max-width: 200px; font-size: 0.85rem;">
@@ -239,14 +239,14 @@
         <td colspan="5" class="text-end py-3 text-uppercase small">Resumen del Periodo (Mts):</td>
         <td class="text-end py-2">
             <div class="text-success small">
-                <i class="fas fa-arrow-up"></i> +{{ number_format($totalEntradas, 2) }}
+                <i class="fas fa-arrow-up"></i> +{{ number_format($totalEntradas, 4) }}
             </div>
             <div class="text-danger small">
-                <i class="fas fa-arrow-down"></i> -{{ number_format($totalSalidas, 2) }}
+                <i class="fas fa-arrow-down"></i> -{{ number_format($totalSalidas, 4) }}
             </div>
         </td>
         <td class="text-end py-3" style="background-color: rgba(251, 191, 36, 0.1);">
-            <span class="text-warning h5 mb-0">{{ number_format($saldoFinal, 2) }} mts</span>
+            <span class="text-warning h5 mb-0">{{ number_format($saldoFinal, 4) }} mts</span>
         </td>
     </tr>
 </tfoot>

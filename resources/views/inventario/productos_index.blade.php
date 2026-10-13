@@ -222,11 +222,8 @@
                     </td>
 
                     <td>{{ $producto->unidad_medida_longitud }}</td>
-                     <td>
-                        {{-- OJO: Aquí dice 'Metros disponibles' en el encabezado,
-                             pero estás mostrando 'peso_total_libras'.
-                             Si quisieras metros sería: $producto->stock_metros --}}
-                        {{ number_format($producto->stock_metros, 2) }}
+                    <td>
+                        {{ number_format($producto->stock_metros, 4) }}
                     </td>
 
                     <td>
@@ -354,7 +351,7 @@ function realizarConsulta() {
                         <td class="fw-bold">${p.codigo}</td>
                         <td>${p.descripcion} ${textoMedidas}</td>
                         <td>${p.unidad_medida_longitud}</td>
-                        <td class="text-end">${parseFloat(p.stock_metros).toFixed(2)}</td>
+                        <td class="text-end">${parseFloat(p.stock_metros).toFixed(4)}</td>
                         <td class="text-end">${parseFloat(p.peso_total_libras).toFixed(2)}</td>
                         <td class="text-center">
                             <a href="${urlVer}" class="btn btn-sm btn-primary">

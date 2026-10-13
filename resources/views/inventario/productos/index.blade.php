@@ -191,7 +191,7 @@
                         <td>{{ $p->pulgadas }}</td>
                         <td>{{ $p->tolerancia }}</td>
                         <td>{{ $p->peso_lb_mts }}</td>
-                        <td>{{ number_format($p->stock_metros, 2) }}</td>
+                        <td>{{ number_format($p->stock_metros, 4) }}</td>
                         <td>${{ number_format($p->precio_venta_sin_iva, 2) }}</td>
                         <!--<td>{{ $p->precio_fijo ? 'Sí' : 'No' }}</td>-->
                         <td>{{ $p->precio_unitario_bodega }}</td>
