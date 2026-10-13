@@ -434,9 +434,9 @@ Route::get(
 
 // --- ETIQUETAS DE PIEZAS (VIÑETAS) ---
 Route::get('/inventario/etiquetas', [EtiquetaPiezaController::class, 'index'])->name('inventario.etiquetas.index');
-Route::get('/inventario/etiquetas/ajax/productos/{id_familia}', [EtiquetaPiezaController::class, 'ajaxProductos'])->name('inventario.etiquetas.ajax.productos');
-Route::get('/inventario/etiquetas/ajax/lotes/{id_producto}', [EtiquetaPiezaController::class, 'ajaxLotes'])->name('inventario.etiquetas.ajax.lotes');
-Route::get('/inventario/etiquetas/ajax/piezas/{id_lote}', [EtiquetaPiezaController::class, 'ajaxPiezas'])->name('inventario.etiquetas.ajax.piezas');
+Route::get('/inventario/etiquetas/ajax/productos/{id_familia?}', [EtiquetaPiezaController::class, 'ajaxProductos'])->name('inventario.etiquetas.ajax.productos');
+Route::get('/inventario/etiquetas/ajax/lotes/{id_producto?}', [EtiquetaPiezaController::class, 'ajaxLotes'])->name('inventario.etiquetas.ajax.lotes');
+Route::get('/inventario/etiquetas/ajax/piezas/{id_lote?}', [EtiquetaPiezaController::class, 'ajaxPiezas'])->name('inventario.etiquetas.ajax.piezas');
 Route::match(['get', 'post'], '/inventario/etiquetas/imprimir', [EtiquetaPiezaController::class, 'imprimir'])->name('inventario.etiquetas.imprimir');
 
 ////Inventario inicial

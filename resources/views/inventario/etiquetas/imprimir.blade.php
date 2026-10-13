@@ -400,7 +400,7 @@
 
                     {{-- 4. CÓDIGO DE BARRAS & CÓDIGO DE PIEZA --}}
                     <div class="barcode-section">
-                        <svg id="{{ $barcodeId }}" class="barcode-svg"></svg>
+                        <svg class="barcode-svg" data-code="{{ $p->codigo }}"></svg>
                         <span class="codigo-pieza-texto">{{ $p->codigo }}</span>
                     </div>
 
@@ -428,23 +428,26 @@
         </div>
     </div>
 
-    {{-- GENERACIÓN DE CÓDIGOS DE BARRAS --}}
+    {{-- GENERACIÓN DE CÓDIGOS DE BARRAS EFICIENTE --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            @foreach($piezas as $idx => $p)
-                try {
-                    JsBarcode("#barcode_{{ $p->id_pieza }}_{{ $idx }}", "{{ $p->codigo }}", {
-                        format: "CODE128",
-                        lineColor: "#000000",
-                        width: 1.5,
-                        height: 38,
-                        displayValue: false,
-                        margin: 0
-                    });
-                } catch(e) {
-                    console.error("Error barcode pieza {{ $p->codigo }}", e);
+            document.querySelectorAll('.barcode-svg').forEach(function(el) {
+                const code = el.getAttribute('data-code');
+                if (code) {
+                    try {
+                        JsBarcode(el, code, {
+                            format: "CODE128",
+                            lineColor: "#000000",
+                            width: 1.5,
+                            height: 38,
+                            displayValue: false,
+                            margin: 0
+                        });
+                    } catch(e) {
+                        console.error("Error al generar barcode para " + code, e);
+                    }
                 }
-            @endforeach
+            });
         });
 
         function cambiarModoVista(modo) {
