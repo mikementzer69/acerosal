@@ -38,6 +38,17 @@
                 </select>
             </div>
 
+            <div>
+                <label>Mostrar:</label>
+                <select name="per_page" class="search-input" style="color: #fff; min-width: 95px;" onchange="this.form.submit()">
+                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10 por pág</option>
+                    <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15 por pág</option>
+                    <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 por pág</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 por pág</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 por pág</option>
+                </select>
+            </div>
+
             <button class="btn-primary" type="submit">
                 <i class="fa-solid fa-magnifying-glass"></i> Buscar
             </button>
@@ -162,10 +173,15 @@
         </table>
     </div>
 
-    {{-- PAGINACIÓN --}}
+    {{-- PAGINACIÓN Y RESUMEN --}}
     @if($ordenes instanceof \Illuminate\Pagination\LengthAwarePaginator)
-        <div class="erp-pagination">
-            {{ $ordenes->withQueryString()->onEachSide(1)->links('pagination::bootstrap-5') }}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 15px; padding: 12px 18px; background: #0f172a; border: 1px solid #334155; border-radius: 8px;">
+            <div style="color: #94a3b8; font-size: 13px;">
+                Mostrando del <strong style="color: #ffffff;">{{ $ordenes->firstItem() ?? 0 }}</strong> al <strong style="color: #ffffff;">{{ $ordenes->lastItem() ?? 0 }}</strong> de un total de <strong style="color: #38bdf8;">{{ $ordenes->total() }}</strong> órdenes
+            </div>
+            <div class="erp-pagination" style="margin: 0;">
+                {{ $ordenes->withQueryString()->onEachSide(1)->links('pagination::bootstrap-5') }}
+            </div>
         </div>
     @endif
 

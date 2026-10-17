@@ -185,6 +185,44 @@
                 </table>
             </div>
 
+            {{-- BARRA DE PAGINACIÓN DE LA TABLA DE PIEZAS --}}
+            <div id="paginacionPiezasContainer" style="display: none; justify-content: space-between; align-items: center; margin-top: 18px; padding: 12px 18px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; flex-wrap: wrap; gap: 12px;">
+                <div style="color: #94a3b8; font-size: 13px;">
+                    Mostrando piezas <strong id="lblPaginacionRango" style="color: #ffffff;">0 - 0</strong> de un total de <strong id="lblPaginacionTotal" style="color: #38bdf8;">0</strong>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="color: #cbd5e1; font-size: 12px; font-weight: 600;">Ver por página:</span>
+                        <select id="selectPorPagina" style="background: #1e293b; color: #ffffff; border: 1px solid #475569; border-radius: 5px; padding: 5px 8px; font-size: 12px; font-weight: 600;">
+                            <option value="15" selected>15 por pág</option>
+                            <option value="25">25 por pág</option>
+                            <option value="50">50 por pág</option>
+                            <option value="100">100 por pág</option>
+                            <option value="all">Todas</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 4px; align-items: center;">
+                        <button type="button" id="btnPaginaPrimera" class="btn btn-sm" style="background: #1e293b; color: #fff; border: 1px solid #475569; padding: 4px 10px; border-radius: 4px;" title="Primera página">
+                            <i class="fa-solid fa-angles-left"></i>
+                        </button>
+                        <button type="button" id="btnPaginaAnterior" class="btn btn-sm" style="background: #1e293b; color: #fff; border: 1px solid #475569; padding: 4px 10px; border-radius: 4px;" title="Página anterior">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <span id="lblPaginaActual" style="display: inline-flex; align-items: center; padding: 4px 12px; color: #38bdf8; font-weight: 700; font-size: 12px; background: #1e293b; border: 1px solid #475569; border-radius: 4px;">
+                            Pág. 1 de 1
+                        </span>
+                        <button type="button" id="btnPaginaSiguiente" class="btn btn-sm" style="background: #1e293b; color: #fff; border: 1px solid #475569; padding: 4px 10px; border-radius: 4px;" title="Página siguiente">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                        <button type="button" id="btnPaginaUltima" class="btn btn-sm" style="background: #1e293b; color: #fff; border: 1px solid #475569; padding: 4px 10px; border-radius: 4px;" title="Última página">
+                            <i class="fa-solid fa-angles-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </form>
     </div>
 
@@ -220,6 +258,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const hiddenFam  = document.getElementById('hiddenFamilia');
     const hiddenProd = document.getElementById('hiddenProducto');
     const hiddenLote = document.getElementById('hiddenLote');
+
+    // Variables de paginación y selección
+    let todasLasPiezas = [];
+    let piezasSeleccionadas = new Set();
+    let paginaActual = 1;
+
+    const paginacionContainer = document.getElementById('paginacionPiezasContainer');
+    const lblPaginacionRango  = document.getElementById('lblPaginacionRango');
+    const lblPaginacionTotal  = document.getElementById('lblPaginacionTotal');
+    const lblPaginaActual     = document.getElementById('lblPaginaActual');
+    const selectPorPagina     = document.getElementById('selectPorPagina');
+    const btnPaginaPrimera    = document.getElementById('btnPaginaPrimera');
+    const btnPaginaAnterior   = document.getElementById('btnPaginaAnterior');
+    const btnPaginaSiguiente  = document.getElementById('btnPaginaSiguiente');
+    const btnPaginaUltima     = document.getElementById('btnPaginaUltima');
+    const formImprimir        = document.getElementById('formImprimirEtiquetas');
 
     // Valores iniciales si vienen por URL
     let famInit  = "{{ $idFamiliaSeleccionada ?? 'todas' }}";
@@ -360,84 +414,200 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(url)
             .then(res => res.json())
             .then(piezas => {
-                tbody.innerHTML = '';
-                totalBadge.textContent = piezas.length;
-
-                if (piezas.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted">No se encontraron piezas activas con los filtros seleccionados.</td></tr>';
-                    actualizarContador();
-                    return;
-                }
-
-                piezas.forEach((pz, idx) => {
-                    const tr = document.createElement('tr');
-                    const mts = parseFloat(pz.cantidad_metros_actual).toFixed(4);
-                    const lbs = parseFloat(pz.peso_libras_actual).toFixed(2);
-                    const estado = pz.estado || 'ACTIVA';
-                    const prodDesc = pz.producto_descripcion || '-';
-                    const famDesc  = pz.familia_nombre || '-';
-                    const loteDesc = pz.lote_codigo || '-';
-
-                    tr.innerHTML = `
-                        <td style="text-align: center;">
-                            <input type="checkbox" name="piezas[]" value="${pz.id_pieza}" class="check-pieza" checked style="cursor: pointer; width: 16px; height: 16px;">
-                        </td>
-                        <td style="text-align: center; color: #94a3b8;">${idx + 1}</td>
-                        <td class="fw-bold" style="color: #38bdf8;">
-                            <i class="fa-solid fa-tag me-1 text-warning"></i> ${pz.codigo}
-                        </td>
-                        <td style="font-size: 0.88rem; color: #e2e8f0;">${prodDesc}</td>
-                        <td><span class="badge" style="background-color: #334155; color: #f8fafc;">${famDesc}</span></td>
-                        <td><span class="badge" style="background-color: #0f172a; color: #fbbf24; border: 1px solid #374151;">${loteDesc}</span></td>
-                        <td style="text-align: right; font-weight: 600; color: #fff;">${mts}</td>
-                        <td style="text-align: right; color: #4ade80;">${lbs}</td>
-                        <td style="text-align: center;">
-                            <span class="badge bg-success" style="font-size: 11px;">${estado}</span>
-                        </td>
-                        <td style="text-align: center;">
-                            <a href="{{ route('inventario.etiquetas.imprimir') }}?piezas=${pz.id_pieza}&formato=${document.getElementById('formatoImpresion').value}" target="_blank" class="btn btn-sm" style="background-color: #8b5cf6; color: #fff; font-size: 11px; padding: 3px 8px;" title="Imprimir solo esta viñeta">
-                                <i class="fa-solid fa-print"></i> Viñeta
-                            </a>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-
-                // Check todos activos por defecto
-                checkTodos.checked = true;
-                actualizarContador();
-                asignarEventosChecks();
+                todasLasPiezas = piezas;
+                // Marcar todas por defecto al cargar nuevo filtro
+                piezasSeleccionadas = new Set(piezas.map(p => String(p.id_pieza)));
+                paginaActual = 1;
+                renderizarTabla();
             })
             .catch(err => {
                 console.error(err);
+                todasLasPiezas = [];
+                piezasSeleccionadas.clear();
+                if (paginacionContainer) paginacionContainer.style.display = 'none';
                 tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">Error al consultar piezas del inventario.</td></tr>';
+                actualizarContador();
             });
     }
 
-    // CHECKBOXES
-    checkTodos.addEventListener('change', function() {
-        const checks = document.querySelectorAll('.check-pieza');
-        checks.forEach(c => c.checked = checkTodos.checked);
-        actualizarContador();
-    });
+    // RENDERIZADO DE TABLA PAGINADA
+    function renderizarTabla() {
+        tbody.innerHTML = '';
+        totalBadge.textContent = todasLasPiezas.length;
+        if (lblPaginacionTotal) lblPaginacionTotal.textContent = todasLasPiezas.length;
 
+        if (todasLasPiezas.length === 0) {
+            if (paginacionContainer) paginacionContainer.style.display = 'none';
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted">No se encontraron piezas activas con los filtros seleccionados.</td></tr>';
+            actualizarContador();
+            return;
+        }
+
+        if (paginacionContainer) paginacionContainer.style.display = 'flex';
+
+        const porPag = selectPorPagina.value === 'all' ? todasLasPiezas.length : parseInt(selectPorPagina.value);
+        const totalPaginas = Math.max(1, Math.ceil(todasLasPiezas.length / porPag));
+
+        if (paginaActual > totalPaginas) paginaActual = totalPaginas;
+        if (paginaActual < 1) paginaActual = 1;
+
+        const inicio = (paginaActual - 1) * porPag;
+        const fin    = Math.min(inicio + porPag, todasLasPiezas.length);
+        const piezasPagina = todasLasPiezas.slice(inicio, fin);
+
+        if (lblPaginacionRango) lblPaginacionRango.textContent = `${inicio + 1} - ${fin}`;
+        if (lblPaginaActual) lblPaginaActual.textContent = `Pág. ${paginaActual} de ${totalPaginas}`;
+
+        btnPaginaPrimera.disabled   = (paginaActual === 1);
+        btnPaginaAnterior.disabled  = (paginaActual === 1);
+        btnPaginaSiguiente.disabled = (paginaActual === totalPaginas);
+        btnPaginaUltima.disabled    = (paginaActual === totalPaginas);
+
+        btnPaginaPrimera.style.opacity   = (paginaActual === 1) ? '0.4' : '1';
+        btnPaginaAnterior.style.opacity  = (paginaActual === 1) ? '0.4' : '1';
+        btnPaginaSiguiente.style.opacity = (paginaActual === totalPaginas) ? '0.4' : '1';
+        btnPaginaUltima.style.opacity    = (paginaActual === totalPaginas) ? '0.4' : '1';
+
+        piezasPagina.forEach((pz, idxRel) => {
+            const idxReal = inicio + idxRel + 1;
+            const tr = document.createElement('tr');
+            const mts = parseFloat(pz.cantidad_metros_actual).toFixed(4);
+            const lbs = parseFloat(pz.peso_libras_actual).toFixed(2);
+            const estado = pz.estado || 'ACTIVA';
+            const prodDesc = pz.producto_descripcion || '-';
+            const famDesc  = pz.familia_nombre || '-';
+            const loteDesc = pz.lote_codigo || '-';
+            const isChecked = piezasSeleccionadas.has(String(pz.id_pieza)) ? 'checked' : '';
+
+            tr.innerHTML = `
+                <td style="text-align: center;">
+                    <input type="checkbox" value="${pz.id_pieza}" class="check-pieza" ${isChecked} style="cursor: pointer; width: 16px; height: 16px;">
+                </td>
+                <td style="text-align: center; color: #94a3b8;">${idxReal}</td>
+                <td class="fw-bold" style="color: #38bdf8;">
+                    <i class="fa-solid fa-tag me-1 text-warning"></i> ${pz.codigo}
+                </td>
+                <td style="font-size: 0.88rem; color: #e2e8f0;">${prodDesc}</td>
+                <td><span class="badge" style="background-color: #334155; color: #f8fafc;">${famDesc}</span></td>
+                <td><span class="badge" style="background-color: #0f172a; color: #fbbf24; border: 1px solid #374151;">${loteDesc}</span></td>
+                <td style="text-align: right; font-weight: 600; color: #fff;">${mts}</td>
+                <td style="text-align: right; color: #4ade80;">${lbs}</td>
+                <td style="text-align: center;">
+                    <span class="badge bg-success" style="font-size: 11px;">${estado}</span>
+                </td>
+                <td style="text-align: center;">
+                    <a href="{{ route('inventario.etiquetas.imprimir') }}?piezas=${pz.id_pieza}&formato=${document.getElementById('formatoImpresion').value}" target="_blank" class="btn btn-sm" style="background-color: #8b5cf6; color: #fff; font-size: 11px; padding: 3px 8px;" title="Imprimir solo esta viñeta">
+                        <i class="fa-solid fa-print"></i> Viñeta
+                    </a>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Actualizar estado del checkTodos para la página actual
+        const checksPagina = tbody.querySelectorAll('.check-pieza');
+        const marcadosPagina = tbody.querySelectorAll('.check-pieza:checked').length;
+        checkTodos.checked = (checksPagina.length > 0 && checksPagina.length === marcadosPagina);
+
+        actualizarContador();
+        asignarEventosChecks();
+    }
+
+    // CHECKBOXES
     function asignarEventosChecks() {
-        const checks = document.querySelectorAll('.check-pieza');
+        const checks = tbody.querySelectorAll('.check-pieza');
         checks.forEach(c => {
             c.addEventListener('change', function() {
+                if (this.checked) {
+                    piezasSeleccionadas.add(String(this.value));
+                } else {
+                    piezasSeleccionadas.delete(String(this.value));
+                }
                 const total = checks.length;
-                const marcados = document.querySelectorAll('.check-pieza:checked').length;
-                checkTodos.checked = (total === marcados);
+                const marcados = tbody.querySelectorAll('.check-pieza:checked').length;
+                checkTodos.checked = (total > 0 && total === marcados);
                 actualizarContador();
             });
         });
     }
 
+    checkTodos.addEventListener('change', function() {
+        const checks = tbody.querySelectorAll('.check-pieza');
+        const estado = this.checked;
+        checks.forEach(c => {
+            c.checked = estado;
+            if (estado) {
+                piezasSeleccionadas.add(String(c.value));
+            } else {
+                piezasSeleccionadas.delete(String(c.value));
+            }
+        });
+        actualizarContador();
+    });
+
     function actualizarContador() {
-        const marcados = document.querySelectorAll('.check-pieza:checked').length;
-        cantBadge.textContent = marcados;
-        btnImprimirSel.disabled = (marcados === 0);
+        cantBadge.textContent = piezasSeleccionadas.size;
+        btnImprimirSel.disabled = (piezasSeleccionadas.size === 0);
     }
+
+    // INTERCEPTAR ENVÍO: GARANTIZAR QUE SE IMPRIMAN TODAS LAS SELECCIONADAS (AUNQUE ESTÉN EN OTRAS PÁGINAS)
+    formImprimir.addEventListener('submit', function(e) {
+        if (piezasSeleccionadas.size === 0) {
+            e.preventDefault();
+            alert('Por favor selecciona al menos una pieza para imprimir.');
+            return;
+        }
+
+        // Limpiar inputs viejos
+        formImprimir.querySelectorAll('input[name="piezas[]"]').forEach(inp => inp.remove());
+
+        // Inyectar todas las seleccionadas
+        piezasSeleccionadas.forEach(id => {
+            const inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = 'piezas[]';
+            inp.value = id;
+            formImprimir.appendChild(inp);
+        });
+    });
+
+    // EVENTOS DE NAVEGACIÓN DE PÁGINAS
+    btnPaginaPrimera.addEventListener('click', function() {
+        if (paginaActual !== 1) {
+            paginaActual = 1;
+            renderizarTabla();
+        }
+    });
+
+    btnPaginaAnterior.addEventListener('click', function() {
+        if (paginaActual > 1) {
+            paginaActual--;
+            renderizarTabla();
+        }
+    });
+
+    btnPaginaSiguiente.addEventListener('click', function() {
+        const porPag = selectPorPagina.value === 'all' ? todasLasPiezas.length : parseInt(selectPorPagina.value);
+        const totalPaginas = Math.ceil(todasLasPiezas.length / porPag);
+        if (paginaActual < totalPaginas) {
+            paginaActual++;
+            renderizarTabla();
+        }
+    });
+
+    btnPaginaUltima.addEventListener('click', function() {
+        const porPag = selectPorPagina.value === 'all' ? todasLasPiezas.length : parseInt(selectPorPagina.value);
+        const totalPaginas = Math.ceil(todasLasPiezas.length / porPag);
+        if (paginaActual !== totalPaginas) {
+            paginaActual = totalPaginas;
+            renderizarTabla();
+        }
+    });
+
+    selectPorPagina.addEventListener('change', function() {
+        paginaActual = 1;
+        renderizarTabla();
+    });
 
     // BOTÓN IMPRIMIR TODO LO FILTRADO DIRECTAMENTE
     btnImprimirTodo.addEventListener('click', function() {

@@ -46,7 +46,8 @@ class OrdenDespachoController extends Controller
             $query->where('estado', trim($request->estado));
         }
 
-        $ordenes = $query->paginate(15)->withQueryString();
+        $perPage = in_array((int)$request->per_page, [10, 15, 25, 50, 100]) ? (int)$request->per_page : 15;
+        $ordenes = $query->paginate($perPage)->withQueryString();
 
         return view('inventario.despacho.index', compact('ordenes'));
     }

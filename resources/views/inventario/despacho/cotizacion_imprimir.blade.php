@@ -507,6 +507,26 @@
                         <span class="value">{{ $orden->cliente->direccion }}</span>
                     </div>
                 @endif
+                @php
+                    $tipoContrib = $orden->cliente->tipo_contribuyente ?? 'O';
+                    $esGranContribuyente = ($tipoContrib === 'G');
+                @endphp
+                <div class="info-row">
+                    <span class="label">Contribuyente:</span>
+                    <span class="value">
+                        @if($esGranContribuyente)
+                            <span style="background-color: #1e3a8a; color: #ffffff; padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">
+                                <i class="fa-solid fa-building me-1"></i> Gran Contribuyente
+                            </span>
+                        @elseif($tipoContrib === 'M')
+                            Mediano Contribuyente
+                        @elseif($tipoContrib === 'P')
+                            Pequeño Contribuyente
+                        @else
+                            Otros Contribuyentes
+                        @endif
+                    </span>
+                </div>
             </div>
 
             <div class="info-card">
@@ -647,8 +667,17 @@
 
         {{-- RESUMEN Y TOTALES --}}
         @php
+            $tipoContrib = $orden->cliente->tipo_contribuyente ?? 'O';
+            $esGranContribuyente = ($tipoContrib === 'G');
+
             $iva = $totalSubtotal * 0.13;
-            $granTotal = $totalSubtotal + $iva;
+            $subtotalConIva = $totalSubtotal + $iva;
+
+            // Retención de IVA 1% (Art. 162 del Código Tributario de El Salvador)
+            // Aplica cuando el cliente es Gran Contribuyente ('G') y la operación es >= $100.00 (sin IVA)
+            $aplicaRetencion1 = ($esGranContribuyente && $totalSubtotal >= 100.00);
+            $retencion1 = $aplicaRetencion1 ? round($totalSubtotal * 0.01, 2) : 0;
+            $granTotal = $subtotalConIva - $retencion1;
         @endphp
 
         <div class="summary-grid">
@@ -658,6 +687,15 @@
                     <li>Precios expresados en <strong>Dólares de los Estados Unidos de América (USD)</strong>.</li>
                     <li>Validez de la oferta: <strong>15 días calendario</strong> a partir de la fecha de emisión.</li>
                     <li>Disponibilidad de material y retazos sujeta a confirmación al momento de la orden.</li>
+                    @if($aplicaRetencion1)
+                        <li style="color: #1e3a8a; margin-top: 5px;">
+                            <strong>Aviso Tributario (Art. 162 C.T.):</strong> Por su clasificación como <strong>Gran Contribuyente</strong>, aplica retención del <strong>1% de IVA</strong> en operaciones &ge; $100.00. El cliente emitirá Comprobante de Retención por dicho valor.
+                        </li>
+                    @elseif($esGranContribuyente)
+                        <li style="color: #64748b; margin-top: 5px; font-size: 10.5px;">
+                            <em>Nota fiscal: No aplica retención del 1% de IVA por ser una operación menor a $100.00 USD (Art. 162 C.T.).</em>
+                        </li>
+                    @endif
                     @if(!empty($orden->observaciones))
                         <li style="margin-top: 6px;"><strong>Observaciones:</strong> {{ $orden->observaciones }}</li>
                     @endif
@@ -682,8 +720,24 @@
                         <td class="label">IVA (13%):</td>
                         <td class="value">${{ number_format($iva, 2) }}</td>
                     </tr>
+                    @if($aplicaRetencion1)
+                        <tr>
+                            <td class="label" style="font-size: 11px; color: #64748b;">Subtotal con IVA:</td>
+                            <td class="value" style="font-size: 11px; color: #64748b;">${{ number_format($subtotalConIva, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label" style="color: #b91c1c; font-weight: 700;">
+                                (-) Retención IVA 1% (Art. 162):
+                            </td>
+                            <td class="value" style="color: #b91c1c; font-weight: 700;">
+                                -${{ number_format($retencion1, 2) }}
+                            </td>
+                        </tr>
+                    @endif
                     <tr class="grand-total">
-                        <td class="label" style="text-align: right;">TOTAL COTIZADO:</td>
+                        <td class="label" style="text-align: right;">
+                            {{ $aplicaRetencion1 ? 'TOTAL A PAGAR:' : 'TOTAL COTIZADO:' }}
+                        </td>
                         <td class="value">${{ number_format($granTotal, 2) }}</td>
                     </tr>
                 </table>
