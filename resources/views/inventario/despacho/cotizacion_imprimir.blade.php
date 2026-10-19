@@ -508,8 +508,8 @@
                     </div>
                 @endif
                 @php
-                    $tipoContrib = $orden->cliente->tipo_contribuyente ?? 'O';
-                    $esGranContribuyente = ($tipoContrib === 'G');
+                    $tipoRaw = strtoupper(trim((string)($orden->cliente->tipo_contribuyente ?? 'O')));
+                    $esGranContribuyente = in_array($tipoRaw, ['G', '1']);
                 @endphp
                 <div class="info-row">
                     <span class="label">Contribuyente:</span>
@@ -518,9 +518,9 @@
                             <span style="background-color: #1e3a8a; color: #ffffff; padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">
                                 <i class="fa-solid fa-building me-1"></i> Gran Contribuyente
                             </span>
-                        @elseif($tipoContrib === 'M')
+                        @elseif(in_array($tipoRaw, ['M', '2']))
                             Mediano Contribuyente
-                        @elseif($tipoContrib === 'P')
+                        @elseif(in_array($tipoRaw, ['P', '3']))
                             Pequeño Contribuyente
                         @else
                             Otros Contribuyentes
@@ -667,8 +667,8 @@
 
         {{-- RESUMEN Y TOTALES --}}
         @php
-            $tipoContrib = $orden->cliente->tipo_contribuyente ?? 'O';
-            $esGranContribuyente = ($tipoContrib === 'G');
+            $tipoRaw = strtoupper(trim((string)($orden->cliente->tipo_contribuyente ?? 'O')));
+            $esGranContribuyente = in_array($tipoRaw, ['G', '1']);
 
             $iva = $totalSubtotal * 0.13;
             $subtotalConIva = $totalSubtotal + $iva;

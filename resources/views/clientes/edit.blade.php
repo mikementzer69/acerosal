@@ -97,12 +97,14 @@
 
             {{-- Tipo Contribuyente --}}
             <div style="flex: 1; min-width: 150px;">
-                <label style="display:block; margin-bottom: 8px; color: #ddd;">Contribuyente *</label>
+                @php
+                    $valTipo = strtoupper(trim((string)old('tipo_contribuyente', $cliente->tipo_contribuyente)));
+                @endphp
                 <select name="tipo_contribuyente" style="width: 100%; height: 45px; padding: 5px 10px; background-color: #111; color: #fff; border: 1px solid #444; border-radius: 4px;">
-                    <option value="O" {{ $cliente->tipo_contribuyente == 'O' ? 'selected' : '' }}>Otros (O)</option>
-                    <option value="P" {{ $cliente->tipo_contribuyente == 'P' ? 'selected' : '' }}>Pequeño (P)</option>
-                    <option value="M" {{ $cliente->tipo_contribuyente == 'M' ? 'selected' : '' }}>Mediano (M)</option>
-                    <option value="G" {{ $cliente->tipo_contribuyente == 'G' ? 'selected' : '' }}>Grande (G)</option>
+                    <option value="O" {{ in_array($valTipo, ['O', '0', 'N', '']) ? 'selected' : '' }}>Otros (O)</option>
+                    <option value="P" {{ in_array($valTipo, ['P', '3']) ? 'selected' : '' }}>Pequeño (P)</option>
+                    <option value="M" {{ in_array($valTipo, ['M', '2']) ? 'selected' : '' }}>Mediano (M)</option>
+                    <option value="G" {{ in_array($valTipo, ['G', '1']) ? 'selected' : '' }}>Grande (G)</option>
                 </select>
             </div>
 
