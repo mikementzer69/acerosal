@@ -115,12 +115,11 @@
             margin-bottom: 6px;
         }
 
-        .company-logo-text {
-            font-size: 26px;
-            font-weight: 900;
-            letter-spacing: -0.5px;
-            color: var(--primary);
-            text-transform: uppercase;
+        .company-logo-img {
+            max-height: 70px;
+            max-width: 260px;
+            object-fit: contain;
+            display: block;
         }
 
         .company-tagline {
@@ -443,7 +442,7 @@
         <div class="doc-header">
             <div class="company-info">
                 <div class="company-brand">
-                    <span class="company-logo-text">{{ $empresa->nombre ?? 'ACEROSAL' }}</span>
+                    <img class="company-logo-img" src="{{ asset('images/logo.png') }}" alt="{{ $empresa->nombre ?? 'Acerosal' }}">
                 </div>
                 <div class="company-tagline">Distribución y Corte de Aceros Especiales</div>
                 <div class="company-details">
