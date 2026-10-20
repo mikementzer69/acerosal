@@ -568,7 +568,7 @@
                     <th class="text-start">Descripción / Dimensiones</th>
                     <th style="width: 120px;" class="text-center">Cant. / Cortes</th>
                     <th style="width: 75px;" class="text-end">Metros</th>
-                    <th style="width: 90px;" class="text-end">Precio ($/lb)</th>
+                    <th style="width: 90px;" class="text-center">Precio unitario</th>
                     <th style="width: 100px;" class="text-end">Subtotal ($)</th>
                 </tr>
             </thead>
