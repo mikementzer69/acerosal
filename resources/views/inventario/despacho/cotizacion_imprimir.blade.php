@@ -569,7 +569,6 @@
                     <th class="text-start">Descripción / Dimensiones</th>
                     <th style="width: 120px;" class="text-center">Cant. / Cortes</th>
                     <th style="width: 75px;" class="text-end">Metros</th>
-                    <th style="width: 85px;" class="text-end">Peso (lb)</th>
                     <th style="width: 90px;" class="text-end">Precio ($/lb)</th>
                     <th style="width: 100px;" class="text-end">Subtotal ($)</th>
                 </tr>
@@ -657,7 +656,6 @@
                             @endif
                         </td>
                         <td class="text-end fw-bold">{{ number_format($metros, 4) }}</td>
-                        <td class="text-end fw-bold">{{ number_format($libras, 2) }}</td>
                         <td class="text-end">${{ number_format($precioSinIva, 2) }}</td>
                         <td class="text-end"><strong>${{ number_format($subtotalFila, 2) }}</strong></td>
                     </tr>
@@ -707,10 +705,6 @@
                     <tr>
                         <td class="label">Total Metros:</td>
                         <td class="value">{{ number_format($totalMetros, 4) }} m</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Total Peso (Libras):</td>
-                        <td class="value">{{ number_format($totalLibras, 2) }} lb</td>
                     </tr>
                     <tr>
                         <td class="label">Subtotal (Sin IVA):</td>
