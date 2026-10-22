@@ -11,6 +11,11 @@
         <span>Módulos</span>
     </div>
 
+    @php
+        $idRol = auth()->check() ? auth()->user()->id_rol : null;
+        $esVendedor = ($idRol == 3);
+    @endphp
+
     <ul class="sidebar-menu">
 
         <!-- FORMULARIOS -->
@@ -22,59 +27,57 @@
             </button>
 
             <ul id="formMenu" class="sidebar-submenu">
-                <li><a href="{{ route('empresa.lista') }}">Nueva Empresa</a></li>
-                <li><a href="{{ route('familia.lista') }}">Nueva Calidad</a></li>
-                <li><a href="{{ route('costo.lista') }}">Nuevo Costo</a></li>
-                 <li><a href="{{ route('inventario.ubicaciones.index') }}">Nueva Ubicacion</a></li>
+                @if(!$esVendedor)
+                    <li><a href="{{ route('empresa.lista') }}">Nueva Empresa</a></li>
+                    <li><a href="{{ route('familia.lista') }}">Nueva Calidad</a></li>
+                    <li><a href="{{ route('costo.lista') }}">Nuevo Costo</a></li>
+                    <li><a href="{{ route('inventario.ubicaciones.index') }}">Nueva Ubicacion</a></li>
+                    <li><a href="{{ route('modulo.lista') }}">Nuevo Módulo</a></li>
+                    <li><a href="{{ route('producto.lista') }}">Nuevo Producto</a></li>
+                    <li><a href="{{ route('tarea.lista') }}">Nueva Tarea</a></li>
 
-                <li><a href="{{ route('modulo.lista') }}">Nuevo Módulo</a></li>
-                <li><a href="{{ route('producto.lista') }}">Nuevo Producto</a></li>
-                <li><a href="{{ route('tarea.lista') }}">Nueva Tarea</a></li>
-{{-- Imprime el valor directo de la sesión en tu menú --}}
+                    @if(auth()->check() && auth()->user()->id_rol == 1)
+                        <li><a href="{{ route('usuarios.index') }}">Nuevo Usuario</a></li>
+                        <li><a href="{{ route('roles.index') }}">Nuevo Rol</a></li>
+                    @endif
 
+                    <li><a href="{{ route('proveedores.index') }}">Nuevo Proveedor</a></li>
+                @endif
 
-        @if(auth()->check() && auth()->user()->id_rol == 1)
-            <li><a href="{{ route('usuarios.index') }}">Nuevo Usuario</a></li>
-            <li><a href="{{ route('roles.index') }}">Nuevo Rol</a></li>
-        @endif
-
-                <li><a href="{{ route('proveedores.index') }}">Nuevo Proveedor</a></li>
+                {{-- Clientes: visible para todos (incluyendo Vendedor) --}}
                 <li><a href="{{ route('clientes.index') }}">Nuevo Cliente</a></li>
-
-
-        </ul>
+            </ul>
         </li>
+
         <!-- INVENTARIO -->
-            <li class="sidebar-section">
-                <button class="sidebar-item" onclick="toggleSubmenu('inventarioMenu')">
-                    <i class="fa-solid fa-boxes-stacked"></i>
-                    <span class="item-text">Inventario</span>
-                    <i class="fa-solid fa-chevron-down arrow"></i>
-                </button>
+        <li class="sidebar-section">
+            <button class="sidebar-item" onclick="toggleSubmenu('inventarioMenu')">
+                <i class="fa-solid fa-boxes-stacked"></i>
+                <span class="item-text">Inventario</span>
+                <i class="fa-solid fa-chevron-down arrow"></i>
+            </button>
 
+            <ul id="inventarioMenu" class="sidebar-submenu">
+                @if(!$esVendedor)
+                    <li>
+                        <a href="{{ route('compras.index') }}">Nueva Compra</a>
+                    </li>
+                    <li>
+                        <a href="{{ route('inventario.inventario.productos.index') }}">Consulta de inventario</a>
+                    </li>
+                    <li>
+                        <a href="{{ route('inventario.automatico') }}">Ingreso a inventario</a>
+                    </li>
+                @endif
 
-
-                <ul id="inventarioMenu" class="sidebar-submenu">
-
-                 <li>
-                    <a href="{{ route(name: 'compras.index') }}">Nueva Compra</a>
+                {{-- Órdenes de despacho: visible para todos (incluyendo Vendedor) --}}
+                <li>
+                    <a href="{{ route('inventario.despacho.index') }}">
+                        Órdenes de despacho
+                    </a>
                 </li>
-                    <li>
-                        <a href="{{ route('inventario.inventario.productos.index') }}">                            Consulta de inventario
-                        </a>
-                    </li>
 
-                    <li>
-                        <a href="{{ route('inventario.automatico') }}">
-                            Ingreso a inventario
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="{{ route('inventario.despacho.index') }}">
-                            Órdenes de despacho
-                        </a>
-                    </li>
+                @if(!$esVendedor)
                     <li>
                         <a href="{{ route('inventario.etiquetas.index') }}">
                             Etiquetas de Piezas
@@ -86,7 +89,6 @@
                             <p>Inventario Inicial</p>
                         </a>
                     </li>
-                    <li>
                     <li class="nav-item">
                         <a href="{{ route('inventario.ajuste.index') }}" class="nav-link {{ request()->is('inventario/ajustes/inicial*') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-boxes"></i>
@@ -104,13 +106,12 @@
                             Cierre diario
                         </a>
                     </li>
-                </ul>
-            </li>
+                @endif
+            </ul>
+        </li>
 
-
-
-
-        <!-- Contabilidad -->
+        <!-- CONTABILIDAD (Oculto para Vendedores) -->
+        @if(!$esVendedor)
         <li class="sidebar-section">
             <button class="sidebar-item" onclick="toggleSubmenu('ContabilidadMenu')">
                 <i class="fa-solid fa-gear"></i>
@@ -125,6 +126,7 @@
                 <li><a href="{{ route('cierre.index') }}">Cierre</a></li>
             </ul>
         </li>
+        @endif
 
     </ul>
   </div>
