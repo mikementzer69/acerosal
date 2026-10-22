@@ -550,7 +550,7 @@
                 </div>
                 <div class="info-row">
                     <span class="label">Condición:</span>
-                    <span class="value">Precios con IVA incluido</span>
+                    <span class="value">Precios sin IVA incluido</span>
                 </div>
                 <div class="info-row">
                     <span class="label">Estado:</span>
@@ -608,7 +608,7 @@
                     @php
                         $metros = floatval($d->cantidad_metros);
                         $libras = floatval($d->cantidad_libras);
-                        // Nota: el precio unitario YA incluye IVA
+                        // Nota: el precio unitario NO incluye IVA (se agrega en los totales)
                         $precioSinIva = floatval($d->precio_venta_sin_iva);
                         // Fórmula confirmada por el usuario: Valor = Metros * Precio unitario (redondeado al centavo)
                         $subtotalFila = round($metros * $precioSinIva, 2);
@@ -668,11 +668,11 @@
             $tipoRaw = strtoupper(trim((string)($orden->cliente->tipo_contribuyente ?? 'O')));
             $esGranContribuyente = in_array($tipoRaw, ['G', '1']);
 
-            // Los precios ya incluyen IVA: la suma de filas es el total CON IVA.
-            // Se desglosa el IVA para que Subtotal + IVA = Total exacto al centavo.
-            $subtotalConIva = round($totalSubtotal, 2);
-            $totalSubtotal = round($subtotalConIva / 1.13, 2); // Base sin IVA
-            $iva = round($subtotalConIva - $totalSubtotal, 2);
+            // Los precios NO incluyen IVA: se agrega el 13% al subtotal.
+            // Todo redondeado al centavo para que Subtotal + IVA = Total exacto.
+            $totalSubtotal = round($totalSubtotal, 2);
+            $iva = round($totalSubtotal * 0.13, 2);
+            $subtotalConIva = round($totalSubtotal + $iva, 2);
 
             // Retención de IVA 1% (Art. 162 del Código Tributario de El Salvador)
             // Aplica cuando el cliente es Gran Contribuyente ('G') y la operación es >= $100.00 (sin IVA)
