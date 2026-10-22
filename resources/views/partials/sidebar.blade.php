@@ -14,11 +14,13 @@
     @php
         $idRol = auth()->check() ? auth()->user()->id_rol : null;
         $esVendedor = ($idRol == 3);
+        $esBodeguero = ($idRol == 2);
     @endphp
 
     <ul class="sidebar-menu">
 
-        <!-- FORMULARIOS -->
+        <!-- FORMULARIOS (Oculto para Vendedor y Bodeguero, excepto Clientes para Vendedor/Admin) -->
+        @if(!$esBodeguero)
         <li class="sidebar-section">
             <button class="sidebar-item" onclick="toggleSubmenu('formMenu')">
                 <i class="fa-solid fa-file-pen"></i>
@@ -44,10 +46,11 @@
                     <li><a href="{{ route('proveedores.index') }}">Nuevo Proveedor</a></li>
                 @endif
 
-                {{-- Clientes: visible para todos (incluyendo Vendedor) --}}
+                {{-- Clientes: visible para Administrador y Vendedor --}}
                 <li><a href="{{ route('clientes.index') }}">Nuevo Cliente</a></li>
             </ul>
         </li>
+        @endif
 
         <!-- INVENTARIO -->
         <li class="sidebar-section">
@@ -58,26 +61,33 @@
             </button>
 
             <ul id="inventarioMenu" class="sidebar-submenu">
-                @if(!$esVendedor)
+                @if(!$esVendedor && !$esBodeguero)
                     <li>
                         <a href="{{ route('compras.index') }}">Nueva Compra</a>
                     </li>
+                @endif
+
+                {{-- Consulta de inventario: visible para Admin y Bodeguero --}}
+                @if(!$esVendedor)
                     <li>
                         <a href="{{ route('inventario.inventario.productos.index') }}">Consulta de inventario</a>
                     </li>
+                @endif
+
+                @if(!$esVendedor && !$esBodeguero)
                     <li>
                         <a href="{{ route('inventario.automatico') }}">Ingreso a inventario</a>
                     </li>
                 @endif
 
-                {{-- Órdenes de despacho: visible para todos (incluyendo Vendedor) --}}
+                {{-- Órdenes de despacho: visible para todos (Admin, Vendedor, Bodeguero) --}}
                 <li>
                     <a href="{{ route('inventario.despacho.index') }}">
                         Órdenes de despacho
                     </a>
                 </li>
 
-                @if(!$esVendedor)
+                @if(!$esVendedor && !$esBodeguero)
                     <li>
                         <a href="{{ route('inventario.etiquetas.index') }}">
                             Etiquetas de Piezas
@@ -95,12 +105,19 @@
                             <p>Ajuste Inventario</p>
                         </a>
                     </li>
+                @endif
+
+                {{-- Kardex: visible para Admin y Bodeguero --}}
+                @if(!$esVendedor)
                     <li class="nav-item">
                         <a href="{{ route('inventario.ajuste.kardex') }}" class="nav-link {{ request()->is('inventario/ajustes/kardex*') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-boxes"></i>
                             <p>Kardex</p>
                         </a>
                     </li>
+                @endif
+
+                @if(!$esVendedor && !$esBodeguero)
                     <li>
                         <a href="{{ route('inventario.cierre.diario') }}">
                             Cierre diario
@@ -110,8 +127,8 @@
             </ul>
         </li>
 
-        <!-- CONTABILIDAD (Oculto para Vendedores) -->
-        @if(!$esVendedor)
+        <!-- CONTABILIDAD (Oculto para Vendedores y Bodegueros) -->
+        @if(!$esVendedor && !$esBodeguero)
         <li class="sidebar-section">
             <button class="sidebar-item" onclick="toggleSubmenu('ContabilidadMenu')">
                 <i class="fa-solid fa-gear"></i>
