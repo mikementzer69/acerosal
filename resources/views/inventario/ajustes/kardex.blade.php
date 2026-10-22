@@ -144,6 +144,13 @@
     </form>
 </div>
 
+    @if(!$hayConsulta)
+    <div class="kardex-master-panel" style="text-align: center; padding: 50px 20px;">
+        <i class="fa-solid fa-filter" style="font-size: 40px; color: #94a3b8; margin-bottom: 12px;"></i>
+        <h5 style="color: #475569; font-weight: 700; margin-bottom: 6px;">Seleccione los filtros para consultar el Kardex</h5>
+        <p style="color: #64748b; margin: 0;">Elija la <strong>Calidad</strong> y el <strong>Producto</strong> (y opcionalmente un rango de fechas) y presione <strong>CONSULTAR</strong>.</p>
+    </div>
+    @else
     <div class="card-detalle-pieza">
         <h4 style="color: #60a5fa;"><i class="fa-solid fa-history"></i> Movimientos Registrados</h4>
         <table class="table table-dark table-hover mb-0">
@@ -161,7 +168,16 @@
             </tr>
         </thead>
     <tbody>
-        @foreach($movimientos as $m)
+        @if(request('fecha_inicio') && $movimientos->onFirstPage())
+        <tr>
+            <td colspan="7" class="text-end fw-bold text-uppercase small">
+                Saldo inicial al {{ date('d/m/Y', strtotime(request('fecha_inicio'))) }}
+            </td>
+            <td class="text-end" style="color: #fbbf24; font-weight: bold;">{{ number_format($saldoInicial, 4) }} mts</td>
+            <td></td>
+        </tr>
+        @endif
+        @forelse($movimientos as $m)
         <tr>
             <td class="text-muted small">
                 {{ date('d/m/Y H:i', strtotime($m->fecha)) }}
@@ -229,7 +245,11 @@
         {{ $m->comentario }}
     </td>
             </tr>
-        @endforeach
+        @empty
+            <tr>
+                <td colspan="9" class="text-center py-4 text-muted">No hay movimientos para este producto en el periodo seleccionado.</td>
+            </tr>
+        @endforelse
     </tbody>
 
 
@@ -257,6 +277,7 @@
     <div class="d-flex justify-content-center mt-4">
         {{ $movimientos->links('pagination::bootstrap-5') }}
     </div>
+    @endif
 </div>
 
 <script>

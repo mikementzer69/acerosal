@@ -426,34 +426,60 @@ class InventarioAjusteController extends Controller
                 ->get()
             : [];
 
-        $saldoInicial = 0;
+        // Al abrir el Kardex no se muestran movimientos: solo los filtros.
+        // Se consulta únicamente cuando el usuario selecciona un producto
+        // (el saldo solo tiene sentido por producto).
+        $hayConsulta = $request->filled('id_producto');
 
-        if ($request->filled('id_producto') && $request->filled('fecha_inicio')) {
-            $saldoInicial = DB::table('movimientos_inventario')
-                ->where('id_producto', $idProducto)
-                ->where('id_empresa', session('idEmpresa'))
-                ->where('fecha', '<', $fechaInicio . ' 00:00:00')
-                ->select(DB::raw("
-                    SUM(CASE
-                        WHEN LOWER(tipo) LIKE '%entrada%'
-                          OR LOWER(tipo) LIKE '%inicial%'
-                          OR LOWER(origen) LIKE '%inicial%'
-                          OR LOWER(tipo) LIKE '%reingreso%'
-                          OR LOWER(tipo) LIKE '%positivo%'
-                        THEN COALESCE(NULLIF(cantidad_total_retirada, 0), cantidad)
-                        ELSE -COALESCE(NULLIF(cantidad_total_retirada, 0), cantidad)
-                    END) as saldo_apertura
-                "))
-                ->value('saldo_apertura') ?? 0;
+        $saldoInicial = 0;
+        $saldoFinal = 0;
+        $totalEntradas = 0;
+        $totalSalidas = 0;
+        $movimientos = collect();
+
+        if (!$hayConsulta) {
+            return view('inventario.ajustes.kardex', compact(
+                'movimientos', 'familias', 'productos', 'totalEntradas', 'totalSalidas',
+                'saldoInicial', 'saldoFinal', 'hayConsulta'
+            ));
         }
 
+        // Clasificación de un movimiento como entrada (suma) o salida (resta)
+        $esEntrada = function ($m) {
+            $tipo = strtolower($m->tipo ?? '');
+            $origen = strtolower($m->origen ?? '');
+            return str_contains($tipo, 'entrada') || str_contains($tipo, 'inicial') ||
+                   str_contains($origen, 'inicial') || str_contains($tipo, 'reingreso') ||
+                   str_contains($tipo, 'positivo');
+        };
+        $cantidadDe = function ($m) {
+            return (floatval($m->cantidad_total_retirada) > 0)
+                ? floatval($m->cantidad_total_retirada)
+                : floatval($m->cantidad);
+        };
+
+        // 1. SALDO INICIAL: todos los movimientos del producto antes de la fecha "Desde"
+        if ($fechaInicio) {
+            $previos = DB::table('movimientos_inventario')
+                ->where('id_producto', $idProducto)
+                ->where('id_empresa', session('idEmpresa'))
+                ->where('eliminado', 0)
+                ->where('fecha', '<', $fechaInicio . ' 00:00:00')
+                ->get(['tipo', 'origen', 'cantidad', 'cantidad_total_retirada']);
+
+            foreach ($previos as $m) {
+                $saldoInicial += $esEntrada($m) ? $cantidadDe($m) : -$cantidadDe($m);
+            }
+        }
+
+        // 2. MOVIMIENTOS DEL PERIODO
         $query = DB::table('movimientos_inventario as m')
             ->leftJoin('users as u', 'm.id_usuario', '=', 'u.id')
             ->leftJoin('productos as p', 'm.id_producto', '=', 'p.id_producto')
             ->leftJoin('familias as f', 'p.id_familia', '=', 'f.id_familia')
             ->where('m.id_empresa', session('idEmpresa'))
             ->where('m.eliminado', 0)
-            ->where('p.id_empresa', session('idEmpresa'))
+            ->where('m.id_producto', $idProducto)
             ->select(
                 'm.*',
                 'u.name as nombre_usuario',
@@ -465,25 +491,20 @@ class InventarioAjusteController extends Controller
             ->orderBy('m.fecha', 'asc')
             ->orderBy('m.id_movimiento', 'asc');
 
-        if ($idProducto) {
-            $query->where('m.id_producto', $idProducto);
+        if ($fechaInicio) {
+            $query->where('m.fecha', '>=', $fechaInicio . ' 00:00:00');
+        }
+        if ($fechaFin) {
+            $query->where('m.fecha', '<=', $fechaFin . ' 23:59:59');
         }
 
-        if ($fechaInicio && $fechaFin) {
-            $query->whereBetween('m.fecha', [$fechaInicio . ' 00:00:00', $fechaFin . ' 23:59:59']);
-        }
-        $movimientos = $query->paginate(100)->appends(request()->query());
+        // 3. SALDO ACUMULADO sobre TODO el periodo (así no se reinicia entre páginas)
+        $todos = $query->get();
         $saldoAcumulado = $saldoInicial;
-        $totalEntradas = 0; $totalSalidas = 0;
 
-        foreach ($movimientos as $m) {
-            $cant = ($m->cantidad_total_retirada > 0) ? $m->cantidad_total_retirada : $m->cantidad;
-            $tipo = strtolower($m->tipo);
-            $origen = strtolower($m->origen);
-
-            if (str_contains($tipo, 'entrada') || str_contains($tipo, 'inicial') ||
-                str_contains($origen, 'inicial') || str_contains($tipo, 'reingreso') ||
-                str_contains($tipo, 'positivo')) {
+        foreach ($todos as $m) {
+            $cant = $cantidadDe($m);
+            if ($esEntrada($m)) {
                 $saldoAcumulado += $cant;
                 $totalEntradas += $cant;
             } else {
@@ -493,8 +514,21 @@ class InventarioAjusteController extends Controller
             $m->saldo_dinamico_global = $saldoAcumulado;
         }
         $saldoFinal = $saldoAcumulado;
+
+        // 4. PAGINACIÓN manual (100 por página) conservando el saldo correcto
+        $porPagina = 100;
+        $pagina = \Illuminate\Pagination\Paginator::resolveCurrentPage();
+        $movimientos = new \Illuminate\Pagination\LengthAwarePaginator(
+            $todos->forPage($pagina, $porPagina)->values(),
+            $todos->count(),
+            $porPagina,
+            $pagina,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
         return view('inventario.ajustes.kardex', compact(
-            'movimientos', 'familias', 'productos', 'totalEntradas', 'totalSalidas', 'saldoInicial', 'saldoFinal'
+            'movimientos', 'familias', 'productos', 'totalEntradas', 'totalSalidas',
+            'saldoInicial', 'saldoFinal', 'hayConsulta'
         ));
     }
 }
