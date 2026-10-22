@@ -550,7 +550,7 @@
                 </div>
                 <div class="info-row">
                     <span class="label">Condición:</span>
-                    <span class="value">Precios sin IVA incluido</span>
+                    <span class="value">Precios con IVA incluido</span>
                 </div>
                 <div class="info-row">
                     <span class="label">Estado:</span>
@@ -608,9 +608,10 @@
                     @php
                         $metros = floatval($d->cantidad_metros);
                         $libras = floatval($d->cantidad_libras);
+                        // Nota: el precio unitario YA incluye IVA
                         $precioSinIva = floatval($d->precio_venta_sin_iva);
-                        // Fórmula confirmada por el usuario: Subtotal = Libras * Precio de Venta
-                        $subtotalFila = $libras * $precioSinIva;
+                        // Fórmula confirmada por el usuario: Valor = Metros * Precio unitario (redondeado al centavo)
+                        $subtotalFila = round($metros * $precioSinIva, 2);
 
                         $totalMetros += $metros;
                         $totalLibras += $libras;
@@ -667,8 +668,11 @@
             $tipoRaw = strtoupper(trim((string)($orden->cliente->tipo_contribuyente ?? 'O')));
             $esGranContribuyente = in_array($tipoRaw, ['G', '1']);
 
-            $iva = $totalSubtotal * 0.13;
-            $subtotalConIva = $totalSubtotal + $iva;
+            // Los precios ya incluyen IVA: la suma de filas es el total CON IVA.
+            // Se desglosa el IVA para que Subtotal + IVA = Total exacto al centavo.
+            $subtotalConIva = round($totalSubtotal, 2);
+            $totalSubtotal = round($subtotalConIva / 1.13, 2); // Base sin IVA
+            $iva = round($subtotalConIva - $totalSubtotal, 2);
 
             // Retención de IVA 1% (Art. 162 del Código Tributario de El Salvador)
             // Aplica cuando el cliente es Gran Contribuyente ('G') y la operación es >= $100.00 (sin IVA)
