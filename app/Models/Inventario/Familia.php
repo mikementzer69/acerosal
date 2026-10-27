@@ -29,15 +29,15 @@ class Familia extends Model
     public static function insertar(array $d)
     {
         return self::create([
-            'codigo'        => $d['codigo'],
-            'nombre'        => $d['nombre'],
-            'descripcion'   => $d['descripcion'] ?? null,
-            'detalle_color' => $d['detalle_color'] ?? null,
-            'ubicacion'     => $d['ubicacion'] ?? null,
-            'precio_lista'      => $d['precio_lista'] ?? 0,
-            'precio_especial'   => $d['precio_especial'] ?? 0,
-            'precio_autorizado' => $d['precio_autorizado'] ?? 'N',
-            'inactivo'      => 0
+            'codigo'            => trim($d['codigo']),
+            'nombre'            => trim($d['nombre']),
+            'descripcion'       => $d['descripcion'] ?? '',
+            'detalle_color'     => !empty($d['detalle_color']) ? $d['detalle_color'] : '#000000',
+            'ubicacion'         => $d['ubicacion'] ?? null,
+            'precio_lista'      => isset($d['precio_lista']) && $d['precio_lista'] !== '' ? floatval($d['precio_lista']) : 0,
+            'precio_especial'   => isset($d['precio_especial']) && $d['precio_especial'] !== '' ? floatval($d['precio_especial']) : 0,
+            'precio_autorizado' => !empty($d['precio_autorizado']) ? $d['precio_autorizado'] : 'N',
+            'inactivo'          => 0
         ]);
     }
 
@@ -48,14 +48,14 @@ class Familia extends Model
     {
         return self::where('id_familia', $id)
             ->update([
-                'codigo'        => $d['codigo'],
-                'nombre'        => $d['nombre'],
-                'descripcion'   => $d['descripcion'] ?? null,
-                'detalle_color' => $d['detalle_color'] ?? null,
-                'ubicacion'     => $d['ubicacion'] ?? null,
-                'precio_lista'      => $d['precio_lista'] ?? 0,
-                'precio_especial'   => $d['precio_especial'] ?? 0,
-                'precio_autorizado' => $d['precio_autorizado'] ?? 'N'
+                'codigo'            => trim($d['codigo']),
+                'nombre'            => trim($d['nombre']),
+                'descripcion'       => $d['descripcion'] ?? '',
+                'detalle_color'     => !empty($d['detalle_color']) ? $d['detalle_color'] : '#000000',
+                'ubicacion'         => $d['ubicacion'] ?? null,
+                'precio_lista'      => isset($d['precio_lista']) && $d['precio_lista'] !== '' ? floatval($d['precio_lista']) : 0,
+                'precio_especial'   => isset($d['precio_especial']) && $d['precio_especial'] !== '' ? floatval($d['precio_especial']) : 0,
+                'precio_autorizado' => !empty($d['precio_autorizado']) ? $d['precio_autorizado'] : 'N'
             ]);
     }
 

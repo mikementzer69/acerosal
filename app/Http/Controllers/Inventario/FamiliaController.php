@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Inventario;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use App\Models\Inventario\Familia;
 
 class FamiliaController extends Controller
@@ -35,30 +36,42 @@ class FamiliaController extends Controller
     ============================ */
     public function insertar(Request $request)
     {
+        // Normalizar comas a puntos decimales si el usuario escribió con coma
+        if ($request->has('precio_lista')) {
+            $request->merge(['precio_lista' => str_replace(',', '.', trim($request->precio_lista))]);
+        }
+        if ($request->has('precio_especial')) {
+            $request->merge(['precio_especial' => str_replace(',', '.', trim($request->precio_especial))]);
+        }
+
         $request->validate([
-            'codigo' => 'required|unique:familias,codigo',
-            'nombre'        => 'required|string|max:255',
-            'descripcion'   => 'nullable|string',
-            'detalle_color' => 'nullable|string|max:20',
-            'ubicacion'    => 'nullable|string|max:20',
-            'precio_lista' => 'nullable|numeric|min:0',
-            'precio_especial' => 'nullable|numeric|min:0',
+            'codigo'            => ['required', 'string', 'max:50', Rule::unique('familias', 'codigo')->where('inactivo', 0)],
+            'nombre'            => 'required|string|max:255',
+            'descripcion'       => 'nullable|string',
+            'detalle_color'     => 'nullable|string|max:50',
+            'ubicacion'         => 'nullable|string|max:20',
+            'precio_lista'      => 'nullable|numeric|min:0',
+            'precio_especial'   => 'nullable|numeric|min:0',
             'precio_autorizado' => 'nullable|in:S,N',
         ]);
 
-        Familia::insertar([
-            'codigo'        => $request->codigo,
-            'nombre'        => $request->nombre,
-            'descripcion'   => $request->descripcion,
-            'detalle_color' => $request->detalle_color,
-            'ubicacion'     => $request->ubicacion,
-            'precio_lista'      => $request->precio_lista,
-            'precio_especial'   => $request->precio_especial,
-            'precio_autorizado' => $request->precio_autorizado ?? 'N',
-        ]);
+        try {
+            Familia::insertar([
+                'codigo'            => $request->codigo,
+                'nombre'            => $request->nombre,
+                'descripcion'       => $request->descripcion,
+                'detalle_color'     => $request->detalle_color,
+                'ubicacion'         => $request->ubicacion,
+                'precio_lista'      => $request->precio_lista,
+                'precio_especial'   => $request->precio_especial,
+                'precio_autorizado' => $request->precio_autorizado ?? 'N',
+            ]);
 
-        return redirect()->route('familia.lista')
-                         ->with('msg', 'Calidad creada correctamente.');
+            return redirect()->route('familia.lista')
+                             ->with('msg', 'Calidad creada correctamente.');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Error al crear la calidad: ' . $e->getMessage());
+        }
     }
 
 
@@ -78,31 +91,45 @@ class FamiliaController extends Controller
     ============================ */
     public function actualizar(Request $request, $id)
     {
-    $request->validate([
-        'codigo' => 'required|string|max:50|unique:familias,codigo,' . $id . ',id_familia',
-        'nombre' => 'required|string|max:255',
-        'descripcion' => 'nullable|string',
-        'detalle_color' => 'nullable|string|max:20',
-        'ubicacion' => 'nullable|string|max:20',
-        'precio_lista' => 'nullable|numeric|min:0',
-        'precio_especial' => 'nullable|numeric|min:0',
-        'precio_autorizado' => 'nullable|in:S,N',
-    ]);
+        // Normalizar comas a puntos decimales si el usuario escribió con coma
+        if ($request->has('precio_lista')) {
+            $request->merge(['precio_lista' => str_replace(',', '.', trim($request->precio_lista))]);
+        }
+        if ($request->has('precio_especial')) {
+            $request->merge(['precio_especial' => str_replace(',', '.', trim($request->precio_especial))]);
+        }
 
-
-        Familia::actualizarInline($id, [
-            'codigo'        => $request->codigo,
-            'nombre'        => $request->nombre,
-            'descripcion'   => $request->descripcion,
-            'detalle_color' => $request->detalle_color,
-            'ubicacion'     => $request->ubicacion,
-            'precio_lista'      => $request->precio_lista,
-            'precio_especial'   => $request->precio_especial,
-            'precio_autorizado' => $request->precio_autorizado ?? 'N',
+        $request->validate([
+            'codigo'            => ['required', 'string', 'max:50', Rule::unique('familias', 'codigo')->ignore($id, 'id_familia')->where('inactivo', 0)],
+            'nombre'            => 'required|string|max:255',
+            'descripcion'       => 'nullable|string',
+            'detalle_color'     => 'nullable|string|max:50',
+            'ubicacion'         => 'nullable|string|max:20',
+            'precio_lista'      => 'nullable|numeric|min:0',
+            'precio_especial'   => 'nullable|numeric|min:0',
+            'precio_autorizado' => 'nullable|in:S,N',
         ]);
 
-        return redirect()->route('familia.lista')
-                         ->with('msg', 'Calidad actualizada correctamente.');
+        try {
+            $familiaActual = Familia::findOrFail($id);
+            $ubicacion = $request->has('ubicacion') ? $request->ubicacion : $familiaActual->ubicacion;
+
+            Familia::actualizarInline($id, [
+                'codigo'            => $request->codigo,
+                'nombre'            => $request->nombre,
+                'descripcion'       => $request->descripcion,
+                'detalle_color'     => $request->detalle_color,
+                'ubicacion'         => $ubicacion,
+                'precio_lista'      => $request->precio_lista,
+                'precio_especial'   => $request->precio_especial,
+                'precio_autorizado' => $request->precio_autorizado ?? 'N',
+            ]);
+
+            return redirect()->route('familia.lista')
+                             ->with('msg', 'Calidad actualizada correctamente.');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Error al actualizar la calidad: ' . $e->getMessage());
+        }
     }
 
 

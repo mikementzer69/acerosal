@@ -608,7 +608,20 @@
                     @php
                         $metros = floatval($d->cantidad_metros);
                         $libras = floatval($d->cantidad_libras);
-                        $precioPorLibra = floatval($d->precio_venta_sin_iva);
+                        // Precio por libra directamente de la tabla familias
+                        $precioPorLibra = 0;
+                        if (!empty($d->familia)) {
+                            if (in_array(intval($orden->motivo_precio ?? 0), [1, 2]) && floatval($d->familia->precio_especial ?? 0) > 0) {
+                                $precioPorLibra = floatval($d->familia->precio_especial);
+                            } else {
+                                $precioPorLibra = floatval($d->familia->precio_lista ?? 0);
+                            }
+                        }
+                        // Respaldo en caso que la familia no tenga precio cargado
+                        if ($precioPorLibra <= 0) {
+                            $precioPorLibra = floatval($d->precio_venta_sin_iva);
+                        }
+
                         $cantidadCortes = max(1, intval($d->cantidad_cortes));
                         $largoPedido = floatval($d->medida_unitaria > 0 ? $d->medida_unitaria : ($cantidadCortes > 0 ? $metros / $cantidadCortes : $metros));
 
