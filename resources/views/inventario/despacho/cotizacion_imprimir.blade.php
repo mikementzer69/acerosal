@@ -608,13 +608,24 @@
                     @php
                         $metros = floatval($d->cantidad_metros);
                         $libras = floatval($d->cantidad_libras);
-                        // Nota: el precio unitario NO incluye IVA (se agrega en los totales)
-                        $precioSinIva = floatval($d->precio_venta_sin_iva);
-                        // Fórmula confirmada por el usuario: Valor = Metros * Precio unitario (redondeado al centavo)
-                        $subtotalFila = round($metros * $precioSinIva, 2);
+                        $precioPorLibra = floatval($d->precio_venta_sin_iva);
+                        $cantidadCortes = max(1, intval($d->cantidad_cortes));
+                        $largoPedido = floatval($d->medida_unitaria > 0 ? $d->medida_unitaria : ($cantidadCortes > 0 ? $metros / $cantidadCortes : $metros));
+
+                        // Peso por metro del material (peso_lb_mts del producto)
+                        $pesoPorMetro = floatval($d->producto->peso_lb_mts ?? 0);
+                        if ($pesoPorMetro <= 0 && $metros > 0 && $libras > 0) {
+                            $pesoPorMetro = $libras / $metros;
+                        }
+
+                        // Fórmula solicitada por el usuario:
+                        // Subtotal = peso por metro × largo pedido × precio por libra × cantidad
+                        // Precio por pieza = peso por metro × largo pedido × precio por libra (o Subtotal / cantidad)
+                        $subtotalFila = round($pesoPorMetro * $largoPedido * $precioPorLibra * $cantidadCortes, 2);
+                        $precioPieza = $cantidadCortes > 0 ? round($pesoPorMetro * $largoPedido * $precioPorLibra, 2) : $subtotalFila;
 
                         $totalMetros += $metros;
-                        $totalLibras += $libras;
+                        $totalLibras += ($pesoPorMetro * $metros > 0 ? ($pesoPorMetro * $metros) : $libras);
                         $totalSubtotal += $subtotalFila;
 
                         $mm = floatval($d->producto->milimetros ?? 0);
@@ -656,7 +667,12 @@
                             @endif
                         </td>
                         <td class="text-end fw-bold">{{ number_format($metros, 4) }}</td>
-                        <td class="text-end">${{ number_format($precioSinIva, 2) }}</td>
+                        <td class="text-end">
+                            ${{ number_format($precioPieza, 2) }}
+                            <div style="font-size: 10px; color: #64748b;" title="Precio por libra: ${{ number_format($precioPorLibra, 2) }}">
+                                (${{ number_format($precioPorLibra, 2) }}/lb)
+                            </div>
+                        </td>
                         <td class="text-end"><strong>${{ number_format($subtotalFila, 2) }}</strong></td>
                     </tr>
                 @endforeach
