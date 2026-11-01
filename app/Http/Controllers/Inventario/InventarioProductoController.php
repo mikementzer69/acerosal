@@ -139,11 +139,18 @@ class InventarioProductoController extends Controller
         }
     }
 
-    // 6. CARGA INICIAL DEL INDEX
+    // 6. CARGA INICIAL DEL INDEX (Sin mostrar datos hasta que el usuario filtre)
     public function index(Request $request)
     {
         // Familias (Globales, pero podrías filtrarlas si tuvieran id_empresa)
         $familias = DB::table('familias')->where('inactivo', 0)->get();
+
+        $tieneFiltros = $request->filled('id_familia') || $request->filled('id_producto') || $request->filled('busqueda');
+
+        if (!$tieneFiltros) {
+            $productos = collect();
+            return view('inventario.productos_index', compact('productos', 'familias'));
+        }
 
         $query = DB::table('productos')
             ->where('id_empresa', session('idEmpresa'))

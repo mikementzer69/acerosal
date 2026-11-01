@@ -242,7 +242,7 @@
 
     <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
         <span style="color: #94a3b8; font-size: 0.9rem;">
-            Total Productos: <strong style="color: #38bdf8;">{{ $productos instanceof \Illuminate\Pagination\LengthAwarePaginator ? $productos->total() : $productos->count() }}</strong>
+            Total Productos: <strong id="contadorProductos" style="color: #38bdf8;">{{ $productos instanceof \Illuminate\Pagination\LengthAwarePaginator ? $productos->total() : $productos->count() }}</strong>
         </span>
     </div>
 
@@ -312,8 +312,8 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5" class="text-center text-muted">
-                        No hay productos registrados.
+                    <td colspan="6" class="text-center text-muted py-4">
+                        Seleccione los filtros en la parte superior y presione <strong>CONSULTAR</strong> para mostrar el inventario.
                     </td>
                 </tr>
             @endforelse
@@ -343,6 +343,18 @@
 
 function cargarProductos(idFamilia) {
     const selProd = document.getElementById('selectProducto');
+    const selPieza = document.getElementById('selectPieza');
+
+    if (!idFamilia) {
+        selProd.innerHTML = '<option value="">-- Primero elija familia --</option>';
+        selProd.disabled = true;
+        if (selPieza) {
+            selPieza.innerHTML = '<option value="">-- Todas las piezas --</option>';
+            selPieza.disabled = true;
+        }
+        return;
+    }
+
     selProd.innerHTML = '<option value="">Cargando...</option>';
 
     fetch("{{ route('inventario.productos.familia', ['id_familia' => ':id']) }}".replace(':id', idFamilia))
@@ -389,9 +401,16 @@ function cargarPiezas(idProducto) {
 
 // FUNCIÓN B: El botón CONSULTAR (Muestra el resumen)
 function realizarConsulta() {
-    const idFam = document.getElementById('selectFamilia').value; // Ajustá al ID real de tu combo
-    const idProd = document.getElementById('selectProducto').value; // Ajustá al ID real de tu combo
+    const idFam = document.getElementById('selectFamilia').value;
+    const idProd = document.getElementById('selectProducto').value;
     const tablaBody = document.querySelector('table tbody');
+    const contador = document.getElementById('contadorProductos');
+
+    if (!idFam && !idProd) {
+        if (contador) contador.innerText = '0';
+        tablaBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Por favor, seleccione al menos una Familia / Calidad para realizar la consulta.</td></tr>';
+        return;
+    }
 
     tablaBody.innerHTML = '<tr><td colspan="6" class="text-center">🔍 Consultando Acerosal...</td></tr>';
 
@@ -402,6 +421,7 @@ function realizarConsulta() {
         .then(res => res.json())
         .then(data => {
             tablaBody.innerHTML = '';
+            if (contador) contador.innerText = data.length;
 
             if (data.length === 0) {
                 tablaBody.innerHTML = '<tr><td colspan="6" class="text-center">No hay productos con esos filtros.</td></tr>';
