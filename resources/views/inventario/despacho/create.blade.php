@@ -178,6 +178,7 @@
                 <option value="">Seleccione Calidad</option>
                 @foreach($familias as $f)
                     <option value="{{ $f->id_familia }}" 
+                            data-codigo="{{ $f->codigo ?? '' }}"
                             data-ubicacion="{{ $f->ubicacion }}"
                             data-preciolista="{{ $f->precio_lista ?? 0 }}"
                             data-precioespecial="{{ $f->precio_especial ?? 0 }}"
@@ -466,6 +467,7 @@ function renderizarProductos(lista) {
 
         productoSelect.innerHTML += `
             <option value="${p.id_producto}"
+                    data-codigo="${p.codigo || ''}"
                     data-factor="${p.peso_lb_mts || 0}"
                     data-tolerancia="${p.tolerancia || 0}"
                     data-ubicacion="${p.nombre_ubicacion || ''}"
@@ -575,6 +577,10 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
         return;
     }
 
+    if (!parseFloat(precioInp.value) && familiaSel.selectedIndex > 0) {
+        actualizarPrecioDesdeFamilia();
+    }
+
     const precioActual = parseFloat(precioInp.value) || 0;
     if (precioActual <= 0) {
         const nombreCalidad = familiaSel.options[familiaSel.selectedIndex] ? familiaSel.options[familiaSel.selectedIndex].text.trim() : 'seleccionada';
@@ -673,6 +679,8 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
     // Agregar todas las piezas recolectadas al detalle recalculando peso y mermas por cada porción
     const factorProducto = parseFloat(productoSel.options[productoSel.selectedIndex].getAttribute('data-factor')) || 0;
     const tolMtsProducto = parseFloat(productoSel.options[productoSel.selectedIndex].getAttribute('data-tolerancia')) || 0;
+    const codigoFamilia = familiaSel.options[familiaSel.selectedIndex].getAttribute('data-codigo') || familiaSel.value;
+    const codigoProducto = productoSel.options[productoSel.selectedIndex].getAttribute('data-codigo') || productoSel.value;
 
     piezasToAdd.forEach(piezaObj => {
         let dMetros = piezaObj.dispatch;
@@ -693,7 +701,7 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
         }
 
         let dTolLbs = dTolMts * factorProducto;
-        let dPeso = (dMetros + dTolMts) * factorProducto;
+        let dPeso = dMetros * factorProducto;
 
         let loteVal = loteSel.value;
         if (!loteVal && optOriginal && optOriginal.getAttribute('data-lote')) {
@@ -702,7 +710,9 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
 
         detalles.push({
             id_familia: familiaSel.value,
+            codigo_familia: codigoFamilia,
             id_producto: productoSel.value,
+            codigo_producto: codigoProducto,
             id_lote: loteVal,
             id_pieza: piezaObj.id,
             codigo_pieza: piezaObj.label, // Para mostrarlo bonito en la tabla
@@ -718,15 +728,18 @@ document.getElementById('agregarDetalle').addEventListener('click', function () 
 
     renderTabla();
     cantidadInp.value = ''; pesoInp.value = ''; medidaSolicitadaInp.value = '';
+    const cantAuxInp = document.getElementById('cant_aux');
+    if (cantAuxInp) cantAuxInp.value = '';
     document.getElementById('cantidad_piezas_auto').value = '';
-    if(precioInp) precioInp.value = '';
     if(tolMtsVis) tolMtsVis.value = '';
     if(tolLbsVis) tolLbsVis.value = '';
     
-    // Restaurar los campos de precio especial a su valor por defecto
+    // Restaurar los campos de precio especial a su valor por defecto y recargar el precio de la calidad seleccionada
     document.getElementById('tipo_precio').value = 'lista';
     document.getElementById('div_motivo_precio').style.display = 'none';
     document.getElementById('motivo_precio').value = '';
+    actualizarPrecioDesdeFamilia();
+    actualizarHintExtraccion();
 });
 
 function renderTabla() {
@@ -735,8 +748,8 @@ function renderTabla() {
     detalles.forEach((d, i) => {
         tbody.innerHTML += `
             <tr>
-                <td>${d.id_familia}</td>
-                <td>${d.id_producto}</td>
+                <td>${d.codigo_familia ? d.codigo_familia : d.id_familia}</td>
+                <td>${d.codigo_producto ? d.codigo_producto : d.id_producto}</td>
                 <td style="color: #60a5fa; font-style: italic;">${d.medida_solicitada ? d.medida_solicitada : '-'}</td>
                 <td>${d.id_lote}</td>
                 <td>${d.codigo_pieza ? d.codigo_pieza : d.id_pieza}</td>
@@ -771,11 +784,11 @@ function calcularPeso() {
         const factor = parseFloat(opt.getAttribute('data-factor')) || 0;
         const tolMts = parseFloat(opt.getAttribute('data-tolerancia')) || 0;
         const tolLbs = tolMts * factor;
-        const totalLbs = (cantidad + tolMts) * factor;
+        const netoLbs = cantidad * factor;
 
         if(tolMtsVis) tolMtsVis.value = tolMts.toFixed(4);
         if(tolLbsVis) tolLbsVis.value = tolLbs.toFixed(4);
-        pesoInp.value = totalLbs.toFixed(2);
+        pesoInp.value = netoLbs.toFixed(2);
     }
 }
 

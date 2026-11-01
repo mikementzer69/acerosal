@@ -80,7 +80,7 @@
 
             {{-- PRECIO AUTORIZADO --}}
             <div class="form-group" style="flex: 1;">
-                <label>¿Requiere Autorización para Precio?</label>
+                <label>¿Precio Especial autorizado?</label>
                 <select name="precio_autorizado">
                     <option value="N" {{ old('precio_autorizado') == 'N' ? 'selected' : '' }}>No</option>
                     <option value="S" {{ old('precio_autorizado') == 'S' ? 'selected' : '' }}>Sí</option>

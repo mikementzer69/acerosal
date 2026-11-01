@@ -155,15 +155,22 @@ class OrdenDespachoController extends Controller
                 $pesoPorMetro       = floatval($pieza->peso_lb_mts ?? 0);
 
                 // Cálculo de Peso Neto: $Peso_{neto} = Cantidad_{solicitada} \times Factor_{lb/mt}$
-                $pesoNetoLibras = $cantidadSolicitada * $pesoPorMetro;
+                $pesoNetoLibras = $pesoPorMetro > 0
+                    ? ($cantidadSolicitada * $pesoPorMetro)
+                    : floatval($d['cantidad_libras'] ?? 0);
 
                 $cantidadTotalSalida = $cantidadSolicitada + $tolerancia;
                 if ($tipoGuardado !== 'cotizacion' && $cantidadTotalSalida > $disponibleMetros) {
                     $cantidadTotalSalida = $disponibleMetros;
-                    $tolerancia = $cantidadTotalSalida - $cantidadSolicitada;
+                    $tolerancia = max(0, $cantidadTotalSalida - $cantidadSolicitada);
                 }
 
-                $pesoRealDescontado = floatval($d['cantidad_libras'] ?? 0);
+                $mermaLibras = $pesoPorMetro > 0
+                    ? ($tolerancia * $pesoPorMetro)
+                    : floatval($d['merma_lbs'] ?? 0);
+
+                // Total en libras a descontar del inventario (Peso Neto + Merma en Libras)
+                $pesoRealDescontado = $pesoNetoLibras + $mermaLibras;
 
                 // --- SEGURO DE VIDA PARA EL PRECIO ---
                 $precioVenta = floatval($d['precio_venta_sin_iva'] ?? 0);
@@ -188,7 +195,7 @@ class OrdenDespachoController extends Controller
                 // Blindaje ID Lote para evitar valores vacíos ''
                 $idLoteReal = !empty($d['id_lote']) ? intval($d['id_lote']) : intval($pieza->id_lote ?? 0);
 
-                // D. GUARDAR DETALLE
+                // D. GUARDAR DETALLE (Peso neto en cantidad_libras, igual que cantidad_metros)
                 DB::table('ordenes_despacho_detalle')->insert([
                     'id_orden_despacho' => $orden->id_orden_despacho,
                     'id_familia'        => $d['id_familia'],
@@ -197,9 +204,9 @@ class OrdenDespachoController extends Controller
                     'id_pieza'          => $d['id_pieza'],
                     'medida_solicitada' => $d['medida_solicitada'] ?? null,
                     'cantidad_metros'   => $cantidadSolicitada,
-                    'cantidad_libras'   => $pesoRealDescontado,
+                    'cantidad_libras'   => $pesoNetoLibras,
                     'merma_metros'      => $tolerancia,
-                    'merma_libras'      => floatval($d['merma_lbs'] ?? 0),
+                    'merma_libras'      => $mermaLibras,
                     'precio_venta_sin_iva' => $precioVenta,
                     'id_empresa'        => session('idEmpresa'),
                     'created_at'        => now(),
@@ -236,7 +243,7 @@ class OrdenDespachoController extends Controller
                         'cantidad_solicitada'    => $cantidadSolicitada,
                         'peso_neto_libras'       => $pesoNetoLibras,
                         'tolerancia_aplicada'    => $tolerancia,
-                        'merma_libras_grabada'   => $d['merma_lbs'] ?? 0,
+                        'merma_libras_grabada'   => $mermaLibras,
                         'cantidad_total_retirada'=> $cantidadTotalSalida,
                         'peso'                   => $pesoRealDescontado,
                         'precio_venta_sin_iva'   => $precioVenta,
@@ -432,6 +439,7 @@ public function productosPorFamilia($id_familia)
                 $producto = DB::table('productos')->where('id_producto', $d->id_producto)->where('id_empresa', session('idEmpresa'))->first();
 
                 $metrosADevolver = floatval($d->cantidad_metros) + floatval($d->merma_metros ?? 0);
+                $librasADevolver = floatval($d->cantidad_libras) + floatval($d->merma_libras ?? 0);
                 $nuevosMetros = $pieza->cantidad_metros_actual + $metrosADevolver;
                 $nuevoPesoLbs = $nuevosMetros * ($producto->peso_lb_mts ?? 0);
 
@@ -451,7 +459,7 @@ public function productosPorFamilia($id_familia)
                     ->where('id_empresa', session('idEmpresa'))
                     ->update([
                         'cantidad_total_metros' => DB::raw("cantidad_total_metros + $metrosADevolver"),
-                        'peso_total_libras'     => DB::raw("peso_total_libras + $d->cantidad_libras"),
+                        'peso_total_libras'     => DB::raw("peso_total_libras + $librasADevolver"),
                         'total_piezas'          => DB::raw("total_piezas + 1") // Agregamos esta línea
                     ]);
 
@@ -461,7 +469,7 @@ public function productosPorFamilia($id_familia)
                     ->where('id_empresa', session('idEmpresa'))
                     ->update([
                         'stock_metros'      => DB::raw("stock_metros + $metrosADevolver"),
-                        'peso_total_libras' => DB::raw("peso_total_libras + $d->cantidad_libras")
+                        'peso_total_libras' => DB::raw("peso_total_libras + $librasADevolver")
                     ]);
 
                 // D. Registro en KARDEX
@@ -472,7 +480,7 @@ public function productosPorFamilia($id_familia)
                     'origen'       => 'Anulación Orden',
                     'tipo'         => 'entrada',
                     'cantidad'     => $d->cantidad_metros,
-                    'peso'         => $d->cantidad_libras,
+                    'peso'         => $librasADevolver,
                     'saldo_metros' => $nuevosMetros,
                     'saldo_libras' => $nuevoPesoLbs,
                     'fecha'        => now(),
@@ -549,8 +557,9 @@ public function productosPorFamilia($id_familia)
                     throw new \Exception("Stock insuficiente en la pieza {$codigoPieza}: Tiene " . number_format($disponibleMetros, 4) . " m disponibles, pero se requieren " . number_format($cantidadTotalSalida, 4) . " m (incluyendo corte/merma). Por favor reasigne la pieza.");
                 }
 
-                $pesoNetoLibras     = $cantidadSolicitada * $pesoPorMetro;
-                $pesoRealDescontado = floatval($d->cantidad_libras ?? 0);
+                $pesoNetoLibras     = floatval($d->cantidad_libras ?? ($cantidadSolicitada * $pesoPorMetro));
+                $mermaLibras        = floatval($d->merma_libras ?? ($tolerancia * $pesoPorMetro));
+                $pesoRealDescontado = $pesoNetoLibras + $mermaLibras;
 
                 $nuevoSaldoMetros = $disponibleMetros - $cantidadTotalSalida;
                 $nuevoSaldoLibras = $disponibleLibras - $pesoRealDescontado;

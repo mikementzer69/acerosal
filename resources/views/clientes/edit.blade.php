@@ -299,8 +299,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (nrcInput) {
         nrcInput.addEventListener('input', function(e) {
-            let x = e.target.value.replace(/\D/g, '').match(/(\d{0,7})(\d{0,1})/);
-            e.target.value = !x[2] ? x[1] : x[1] + '-' + x[2];
+            let digits = e.target.value.replace(/\D/g, '').slice(0, 8);
+            e.target.value = digits.length > 1 ? digits.slice(0, -1) + '-' + digits.slice(-1) : digits;
         });
     }
 });

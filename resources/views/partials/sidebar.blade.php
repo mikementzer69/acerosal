@@ -34,9 +34,7 @@
                     <li><a href="{{ route('familia.lista') }}">Nueva Calidad</a></li>
                     <li><a href="{{ route('costo.lista') }}">Nuevo Costo</a></li>
                     <li><a href="{{ route('inventario.ubicaciones.index') }}">Nueva Ubicacion</a></li>
-                    <li><a href="{{ route('modulo.lista') }}">Nuevo Módulo</a></li>
                     <li><a href="{{ route('producto.lista') }}">Nuevo Producto</a></li>
-                    <li><a href="{{ route('tarea.lista') }}">Nueva Tarea</a></li>
 
                     @if(auth()->check() && auth()->user()->id_rol == 1)
                         <li><a href="{{ route('usuarios.index') }}">Nuevo Usuario</a></li>

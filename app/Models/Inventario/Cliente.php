@@ -33,6 +33,7 @@ class Cliente extends Model
         'origen',
         'tipo_contribuyente',
         'id_giro',
+        'notas',
         'estado'            // ACTIVO, INACTIVO
     ];
 }

@@ -46,7 +46,7 @@ public function index(Request $request)
             'nombre'             => 'required|string|max:150',
             'documento'          => 'nullable|string|regex:/^\d{8}-\d$/', // DUI: 00000000-0
             'nit'                => 'nullable|string|regex:/^\d{4}-\d{6}-\d{3}-\d$/', // NIT: 0000-000000-000-0
-            'nrc'                => 'nullable|string|regex:/^\d{7}-\d$/', // NRC: 0123456-7
+            'nrc'                => 'nullable|string|regex:/^\d{1,7}-\d$/', // NRC: 123456-7 o 0123456-7
             'nite'               => 'nullable|string|max:50',
             'pasaporte'          => 'nullable|string|max:50',
             'origen'             => 'required|in:N,E',
@@ -56,7 +56,7 @@ public function index(Request $request)
         ], [
             'documento.regex' => 'El formato del DUI debe ser 00000000-0',
             'nit.regex'       => 'El formato del NIT debe ser 0000-000000-000-0',
-            'nrc.regex'       => 'El formato del NRC debe ser 0123456-7',
+            'nrc.regex'       => 'El formato del NRC debe incluir guion y dígito verificador (ej. 123456-7)',
         ]);
 
         // Crear Cliente
@@ -76,6 +76,7 @@ public function index(Request $request)
             'limite_credito'     => $request->limite_credito ?? 0,
             'dias_credito'       => $request->dias_credito ?? 0,
             'estado'             => $request->estado,
+            'notas'              => $request->notas ?? '',
             'nit'                => $request->nit,
             'nrc'                => $request->nrc,
             'nite'               => $request->nite,
@@ -83,7 +84,7 @@ public function index(Request $request)
             'origen'             => $request->origen,
             'tipo_contribuyente' => $request->tipo_contribuyente,
             'id_giro'            => $request->id_giro,
-            'exento'             => $request->has('exento'),
+            'exento'             => $request->has('exento') ? '1' : '0',
         ]);
 
         return redirect()->route('clientes.index')->with('success', 'Cliente registrado exitosamente.');
@@ -107,7 +108,7 @@ public function update(Request $request, $id)
         'nombre'             => 'required|string|max:150',
         'documento'          => 'nullable|string|regex:/^\d{8}-\d$/',
         'nit'                => 'nullable|string|regex:/^\d{4}-\d{6}-\d{3}-\d$/',
-        'nrc'                => 'nullable|string|regex:/^\d{7}-\d$/',
+        'nrc'                => 'nullable|string|regex:/^\d{1,7}-\d$/',
         'nite'               => 'nullable|string|max:50',
         'pasaporte'          => 'nullable|string|max:50',
         'origen'             => 'required|in:N,E',
@@ -118,11 +119,11 @@ public function update(Request $request, $id)
     ], [
         'documento.regex' => 'El formato del DUI debe ser 00000000-0',
         'nit.regex'       => 'El formato del NIT debe ser 0000-000000-000-0',
-        'nrc.regex'       => 'El formato del NRC debe ser 0123456-7',
+        'nrc.regex'       => 'El formato del NRC debe incluir guion y dígito verificador (ej. 123456-7)',
     ]);
 
     $data = $request->all();
-    $data['exento'] = $request->has('exento');
+    $data['exento'] = $request->has('exento') ? '1' : '0';
 
     $cliente->update($data);
 

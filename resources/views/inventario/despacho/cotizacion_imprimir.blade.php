@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #1e3a8a;
+            --primary: #DD101E;
             --primary-dark: #0f172a;
             --accent: #f59e0b;
             --text-dark: #0f172a;
@@ -442,7 +442,11 @@
         <div class="doc-header">
             <div class="company-info">
                 <div class="company-brand">
-                    <img class="company-logo-img" src="{{ asset('images/logo.png') }}" alt="{{ $empresa->nombre ?? 'Acerosal' }}">
+                    @php
+                        $idEmpresaLogo = intval($empresa->id_empresa ?? ($orden->id_empresa ?? session('idEmpresa')));
+                        $logoUrl = ($idEmpresaLogo === 2) ? asset('images/logo_empresa2.jpg') : asset('images/logo.png');
+                    @endphp
+                    <img class="company-logo-img" src="{{ $logoUrl }}" alt="{{ $empresa->nombre ?? 'Acerosal' }}">
                 </div>
                 <div class="company-tagline">Distribución y Corte de Aceros Especiales</div>
                 <div class="company-details">
@@ -460,7 +464,7 @@
                 <div class="quote-number"># {{ $orden->numero_orden }}</div>
                 <div class="quote-meta">
                     <div><strong>Fecha:</strong> {{ \Carbon\Carbon::parse($orden->fecha)->format('d/m/Y') }}</div>
-                    <div><strong>Vigencia:</strong> 15 Días</div>
+                    <div><strong>Vigencia:</strong> 8 Días</div>
                     <div><strong>Moneda:</strong> Dólares (USD $)</div>
                 </div>
             </div>
@@ -514,7 +518,7 @@
                     <span class="label">Contribuyente:</span>
                     <span class="value">
                         @if($esGranContribuyente)
-                            <span style="background-color: #1e3a8a; color: #ffffff; padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">
+                            <span style="background-color: #DD101E; color: #ffffff; padding: 2px 7px; border-radius: 4px; font-weight: 700; font-size: 11px;">
                                 <i class="fa-solid fa-building me-1"></i> Gran Contribuyente
                             </span>
                         @elseif(in_array($tipoRaw, ['M', '2']))
@@ -535,18 +539,6 @@
                 <div class="info-row">
                     <span class="label">Asesor Comercial:</span>
                     <span class="value">{{ $orden->vendedor->nombre ?? 'Ventas' }} {{ $orden->vendedor->apellidos ?? '' }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Tipo de Precio:</span>
-                    <span class="value">
-                        @if($orden->motivo_precio == 1)
-                            Especial (Autorizado)
-                        @elseif($orden->motivo_precio == 2)
-                            Especial (Competencia)
-                        @else
-                            Precio de Lista
-                        @endif
-                    </span>
                 </div>
                 <div class="info-row">
                     <span class="label">Condición:</span>
@@ -578,27 +570,31 @@
                     $totalLibras = 0;
                     $totalSubtotal = 0;
 
-                    // Agrupación automática de cortes repetidos de la misma pieza y medida
+                    // Agrupación automática de cortes repetidos del mismo producto, lote y medida (aunque salgan de distintas piezas)
                     $detallesAgrupados = $orden->detalles->groupBy(function($item) {
                         $metros = number_format(floatval($item->cantidad_metros), 4, '.', '');
                         $medidaSol = trim($item->medida_solicitada ?? '');
-                        $idPieza = $item->id_pieza ?? 0;
                         $idLote = $item->id_lote ?? 0;
                         $idProd = $item->id_producto ?? 0;
                         $precio = number_format(floatval($item->precio_venta_sin_iva ?? 0), 2, '.', '');
-                        return "{$idProd}_{$idLote}_{$idPieza}_{$metros}_{$medidaSol}_{$precio}";
+                        return "{$idProd}_{$idLote}_{$metros}_{$medidaSol}_{$precio}";
                     })->map(function($grupo) {
                         $primer = $grupo->first();
+                        $piezasCodigos = $grupo->map(fn($d) => $d->pieza->codigo ?? null)->filter()->unique()->values()->implode(', ');
                         return (object)[
                             'familia'           => $primer->familia,
                             'producto'          => $primer->producto,
                             'lote'              => $primer->lote,
                             'pieza'             => $primer->pieza,
+                            'piezas_codigos'    => $piezasCodigos,
                             'cantidad_cortes'   => $grupo->count(),
                             'medida_unitaria'   => floatval($primer->cantidad_metros),
+                            'merma_unitaria'    => floatval($primer->merma_metros ?? ($primer->producto->tolerancia ?? 0)),
                             'medida_solicitada' => $primer->medida_solicitada,
                             'cantidad_metros'   => $grupo->sum(fn($d) => floatval($d->cantidad_metros)),
+                            'merma_metros'      => $grupo->sum(fn($d) => floatval($d->merma_metros ?? ($d->producto->tolerancia ?? 0))),
                             'cantidad_libras'   => $grupo->sum(fn($d) => floatval($d->cantidad_libras)),
+                            'merma_libras'      => $grupo->sum(fn($d) => floatval($d->merma_libras ?? 0)),
                             'precio_venta_sin_iva' => floatval($primer->precio_venta_sin_iva),
                         ];
                     });
@@ -624,6 +620,8 @@
 
                         $cantidadCortes = max(1, intval($d->cantidad_cortes));
                         $largoPedido = floatval($d->medida_unitaria > 0 ? $d->medida_unitaria : ($cantidadCortes > 0 ? $metros / $cantidadCortes : $metros));
+                        $mermaPorCorte = floatval($d->merma_unitaria ?? ($d->producto->tolerancia ?? 0));
+                        $largoConMerma = $largoPedido + $mermaPorCorte;
 
                         // Peso por metro del material (peso_lb_mts del producto)
                         $pesoPorMetro = floatval($d->producto->peso_lb_mts ?? 0);
@@ -631,11 +629,11 @@
                             $pesoPorMetro = $libras / $metros;
                         }
 
-                        // Fórmula solicitada por el usuario:
-                        // Subtotal = peso por metro × largo pedido × precio por libra × cantidad
-                        // Precio por pieza = peso por metro × largo pedido × precio por libra (o Subtotal / cantidad)
-                        $subtotalFila = round($pesoPorMetro * $largoPedido * $precioPorLibra * $cantidadCortes, 2);
-                        $precioPieza = $cantidadCortes > 0 ? round($pesoPorMetro * $largoPedido * $precioPorLibra, 2) : $subtotalFila;
+                        // Cálculo del precio en cotización incluyendo la merma de corte:
+                        // Precio por pieza = peso por metro × (largo pedido + merma por corte) × precio por libra
+                        // Subtotal = peso por metro × (largo pedido + merma por corte) × precio por libra × cantidad de cortes
+                        $subtotalFila = round($pesoPorMetro * $largoConMerma * $precioPorLibra * $cantidadCortes, 2);
+                        $precioPieza = $cantidadCortes > 0 ? round($pesoPorMetro * $largoConMerma * $precioPorLibra, 2) : $subtotalFila;
 
                         $totalMetros += $metros;
                         $totalLibras += ($pesoPorMetro * $metros > 0 ? ($pesoPorMetro * $metros) : $libras);
@@ -658,15 +656,15 @@
                                     {{ $plg != '-' ? $plg.' plg' : '' }})
                                 </span>
                             @endif
-                            @if(!empty($d->lote->codigo) || !empty($d->pieza->codigo))
+                            @if(!empty($d->lote->codigo) || !empty($d->piezas_codigos) || !empty($d->pieza->codigo))
                                 <div class="prod-sub">
-                                    Pieza: {{ $d->pieza->codigo ?? '-' }} | Lote: {{ $d->lote->codigo ?? '-' }}
+                                    Pieza: {{ !empty($d->piezas_codigos) ? $d->piezas_codigos : ($d->pieza->codigo ?? '-') }} | Lote: {{ $d->lote->codigo ?? '-' }}
                                 </div>
                             @endif
                         </td>
                         <td class="text-center">
                             @if($d->cantidad_cortes > 1)
-                                <span style="display: inline-block; background-color: #1e3a8a; color: white; padding: 2px 7px; border-radius: 4px; font-weight: bold; font-size: 11px;">
+                                <span style="display: inline-block; background-color: #DD101E; color: white; padding: 2px 7px; border-radius: 4px; font-weight: bold; font-size: 11px;">
                                     {{ $d->cantidad_cortes }} cortes
                                 </span>
                                 <div style="font-size: 10px; color: #64748b; margin-top: 2px;">
@@ -682,9 +680,6 @@
                         <td class="text-end fw-bold">{{ number_format($metros, 4) }}</td>
                         <td class="text-end">
                             ${{ number_format($precioPieza, 2) }}
-                            <div style="font-size: 10px; color: #64748b;" title="Precio por libra: ${{ number_format($precioPorLibra, 2) }}">
-                                (${{ number_format($precioPorLibra, 2) }}/lb)
-                            </div>
                         </td>
                         <td class="text-end"><strong>${{ number_format($subtotalFila, 2) }}</strong></td>
                     </tr>
@@ -715,10 +710,10 @@
                 <h6><i class="fa-solid fa-circle-info me-1"></i> Términos y Condiciones Comerciales</h6>
                 <ul>
                     <li>Precios expresados en <strong>Dólares de los Estados Unidos de América (USD)</strong>.</li>
-                    <li>Validez de la oferta: <strong>15 días calendario</strong> a partir de la fecha de emisión.</li>
+                    <li>Validez de la oferta: <strong>8 días calendario</strong> a partir de la fecha de emisión.</li>
                     <li>Disponibilidad de material y retazos sujeta a confirmación al momento de la orden.</li>
                     @if($aplicaRetencion1)
-                        <li style="color: #1e3a8a; margin-top: 5px;">
+                        <li style="color: #DD101E; margin-top: 5px;">
                             <strong>Aviso Tributario (Art. 162 C.T.):</strong> Por su clasificación como <strong>Gran Contribuyente</strong>, aplica retención del <strong>1% de IVA</strong> en operaciones &ge; $100.00. El cliente emitirá Comprobante de Retención por dicho valor.
                         </li>
                     @elseif($esGranContribuyente)
@@ -734,10 +729,6 @@
 
             <div>
                 <table class="totals-table">
-                    <tr>
-                        <td class="label">Total Metros:</td>
-                        <td class="value">{{ number_format($totalMetros, 4) }} m</td>
-                    </tr>
                     <tr>
                         <td class="label">Subtotal (Sin IVA):</td>
                         <td class="value">${{ number_format($totalSubtotal, 2) }}</td>
