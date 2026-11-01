@@ -8,10 +8,11 @@ class Empresa extends Model
 {
     protected $table = 'empresas';          // tabla real
     protected $primaryKey = 'id_empresa';   // no lo cambiaste
-
-    public $timestamps = false;            // tu tabla no usa timestamps laravel
+    public $incrementing = false;           // permitir asignar id_empresa manualmente
+    public $timestamps = false;             // tu tabla no usa timestamps laravel
 
     protected $fillable = [
+        'id_empresa',
         'nombre',
         'nit',
         'nrc',
@@ -19,6 +20,8 @@ class Empresa extends Model
         'direccion',
         'telefono',
         'correo_contacto',
+        'logo',
+        'inactivo',
         'activo',
         'deleted_at'
     ];

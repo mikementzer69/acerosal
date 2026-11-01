@@ -444,7 +444,8 @@
                 <div class="company-brand">
                     @php
                         $idEmpresaLogo = intval($empresa->id_empresa ?? ($orden->id_empresa ?? session('idEmpresa')));
-                        $logoUrl = ($idEmpresaLogo === 2) ? asset('images/logo_empresa2.jpg') : asset('images/logo.png');
+                        $rutaLogoCot = !empty($empresa->logo) ? $empresa->logo : (($idEmpresaLogo === 2) ? 'images/logo_empresa2.jpg' : 'images/logo.png');
+                        $logoUrl = asset($rutaLogoCot);
                     @endphp
                     <img class="company-logo-img" src="{{ $logoUrl }}" alt="{{ $empresa->nombre ?? 'Acerosal' }}">
                 </div>
@@ -480,12 +481,6 @@
                     <span class="label">Cliente:</span>
                     <span class="value"><strong>{{ $orden->cliente->nombre ?? 'Consumidor Final' }}</strong></span>
                 </div>
-                @if(!empty($orden->cliente->nombre_comercial))
-                    <div class="info-row">
-                        <span class="label">Comercial:</span>
-                        <span class="value">{{ $orden->cliente->nombre_comercial }}</span>
-                    </div>
-                @endif
                 @if(!empty($orden->cliente->documento) || !empty($orden->cliente->nit))
                     <div class="info-row">
                         <span class="label">Doc / NIT:</span>

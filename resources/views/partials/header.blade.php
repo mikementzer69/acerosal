@@ -2,8 +2,16 @@
     <div class="header-grid container">
 
         {{-- Columna 1: Logo --}}
+        @php
+            $empActualHeader = \Illuminate\Support\Facades\DB::table('empresas')
+                ->where('id_empresa', session('idEmpresa', 1))
+                ->first();
+            $rutaLogoHeader = !empty($empActualHeader->logo)
+                ? $empActualHeader->logo
+                : (session('idEmpresa') == 2 ? 'images/logo_empresa2.jpg' : 'images/logo.png');
+        @endphp
         <a class="header-logo" href="{{ url('/dashboard') }}" aria-label="Inicio">
-            <img src="{{ asset('images/logo.png') }}" alt="Logo">
+            <img src="{{ asset($rutaLogoHeader) }}" alt="Logo">
         </a>
 
         {{-- Columna 2: Título + Empresa --}}
@@ -15,7 +23,7 @@
                 <form action="{{ route('cambiar.empresa') }}" method="POST" style="margin: 0; display: inline-block;">
                     @csrf
                     <select name="nueva_empresa" onchange="this.form.submit()" style="background-color: #2d3a4f; border: 1px solid #4a5568; color: #fff; border-radius: 4px; padding: 2px 8px; font-weight: bold; cursor: pointer; font-size: 0.9em; outline: none;">
-                        @foreach(\Illuminate\Support\Facades\DB::table('empresas')->where('inactivo', 0)->orderBy('nombre', 'asc')->get() as $emp)
+                        @foreach(\Illuminate\Support\Facades\DB::table('empresas')->where('inactivo', 0)->whereNull('deleted_at')->orderBy('id_empresa', 'asc')->get() as $emp)
                             <option value="{{ $emp->id_empresa }}" {{ session('idEmpresa') == $emp->id_empresa ? 'selected' : '' }}>
                                 {{ $emp->nombre }}
                             </option>

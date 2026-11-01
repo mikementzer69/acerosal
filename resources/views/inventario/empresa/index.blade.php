@@ -63,6 +63,8 @@
         <table class="erp-table">
             <thead>
                 <tr>
+                    <th style="width:60px; text-align:center;">ID</th>
+                    <th style="width:110px; text-align:center;">Logo</th>
                     <th>Nombre</th>
                     <th>NIT</th>
                     <th>NRC</th>
@@ -76,7 +78,14 @@
 
             <tbody>
             @forelse($empresas as $e)
+                @php
+                    $logoEmpresa = !empty($e->logo) ? $e->logo : ($e->id_empresa == 2 ? 'images/logo_empresa2.jpg' : 'images/logo.png');
+                @endphp
                 <tr>
+                    <td style="text-align:center; font-weight:bold; color:#38bdf8;">#{{ $e->id_empresa }}</td>
+                    <td style="text-align:center; background:#ffffff; padding:6px;">
+                        <img src="{{ asset($logoEmpresa) }}" alt="Logo {{ $e->nombre }}" style="max-height:36px; max-width:95px; object-fit:contain;">
+                    </td>
                     <td>{{ $e->nombre }}</td>
                     <td>{{ $e->nit }}</td>
                     <td>{{ $e->nrc }}</td>
@@ -110,7 +119,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="no-results">Sin resultados.</td>
+                    <td colspan="10" class="no-results">Sin resultados.</td>
                 </tr>
             @endforelse
             </tbody>
