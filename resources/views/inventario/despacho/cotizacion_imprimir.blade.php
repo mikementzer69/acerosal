@@ -651,11 +651,6 @@
                                     {{ $plg != '-' ? $plg.' plg' : '' }})
                                 </span>
                             @endif
-                            @if(!empty($d->lote->codigo) || !empty($d->piezas_codigos) || !empty($d->pieza->codigo))
-                                <div class="prod-sub">
-                                    Pieza: {{ !empty($d->piezas_codigos) ? $d->piezas_codigos : ($d->pieza->codigo ?? '-') }} | Lote: {{ $d->lote->codigo ?? '-' }}
-                                </div>
-                            @endif
                         </td>
                         <td class="text-center">
                             @if($d->cantidad_cortes > 1)
