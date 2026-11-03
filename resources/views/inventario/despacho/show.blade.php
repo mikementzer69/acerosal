@@ -564,22 +564,64 @@
 </div>
 
 <style media="print">
-    .no-print, .despacho-btn, .despacho-alert, .sidebar-toggle, header, nav, .sidebar, footer {
+    @page {
+        size: letter;
+        margin: 1cm;
+    }
+    html, body {
+        height: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        background: #ffffff !important;
+    }
+    .erp-container {
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .no-print,
+    .despacho-btn,
+    .despacho-alert,
+    .despacho-cotizacion-banner,
+    .despacho-actions-bar,
+    .sidebar-toggle,
+    header,
+    .app-header,
+    nav,
+    .sidebar,
+    #sidebar,
+    footer,
+    .app-footer {
         display: none !important;
     }
-    main.content {
-        margin-left: 0 !important;
+    main.content,
+    .content {
+        display: block !important;
+        margin: 0 !important;
         padding: 0 !important;
         width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
     }
     .despacho-show-wrapper {
         max-width: 100% !important;
         width: 100% !important;
+        margin: 0 !important;
         padding: 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
     }
     .despacho-card {
-        border: 1px solid #ddd !important;
+        border: 1px solid #cbd5e1 !important;
         box-shadow: none !important;
+        margin-bottom: 14px !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
     }
 </style>
 @endsection

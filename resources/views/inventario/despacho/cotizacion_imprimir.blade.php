@@ -366,10 +366,15 @@
 
         /* REGLAS DE IMPRESIÓN */
         @media print {
-            body {
+            html, body {
+                height: auto !important;
+                min-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
                 background: white !important;
                 color: black !important;
                 font-size: 11px;
+                overflow: visible !important;
             }
 
             .actions-bar {
@@ -383,6 +388,40 @@
                 border: none !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+            }
+
+            .doc-header {
+                padding-bottom: 14px !important;
+                margin-bottom: 14px !important;
+            }
+
+            .info-section {
+                margin-bottom: 16px !important;
+            }
+
+            .items-table {
+                margin-bottom: 16px !important;
+            }
+
+            .summary-section {
+                margin-bottom: 18px !important;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            .signatures {
+                margin-top: 30px !important;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            .doc-footer {
+                margin-top: 18px !important;
+                padding-top: 10px !important;
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
 
             .items-table th {
@@ -412,7 +451,7 @@
 
             @page {
                 size: letter;
-                margin: 1.2cm;
+                margin: 1cm;
             }
         }
     </style>
