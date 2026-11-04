@@ -638,18 +638,14 @@
                     @php
                         $metros = floatval($d->cantidad_metros);
                         $libras = floatval($d->cantidad_libras);
-                        // Precio por libra directamente de la tabla familias
-                        $precioPorLibra = 0;
-                        if (!empty($d->familia)) {
+                        // Tomar primero el precio guardado en el detalle de la orden (ordenes_despacho_detalle.precio_venta_sin_iva)
+                        $precioPorLibra = floatval($d->precio_venta_sin_iva ?? 0);
+                        if ($precioPorLibra <= 0 && !empty($d->familia)) {
                             if (in_array(intval($orden->motivo_precio ?? 0), [1, 2]) && floatval($d->familia->precio_especial ?? 0) > 0) {
                                 $precioPorLibra = floatval($d->familia->precio_especial);
                             } else {
                                 $precioPorLibra = floatval($d->familia->precio_lista ?? 0);
                             }
-                        }
-                        // Respaldo en caso que la familia no tenga precio cargado
-                        if ($precioPorLibra <= 0) {
-                            $precioPorLibra = floatval($d->precio_venta_sin_iva);
                         }
 
                         $cantidadCortes = max(1, intval($d->cantidad_cortes));
@@ -663,11 +659,16 @@
                             $pesoPorMetro = $libras / $metros;
                         }
 
+                        // Libras por corte (peso neto + merma de corte)
+                        $librasPorCorte = $pesoPorMetro > 0
+                            ? ($pesoPorMetro * $largoConMerma)
+                            : (($libras + floatval($d->merma_libras ?? 0)) / $cantidadCortes);
+
                         // Cálculo del precio en cotización incluyendo la merma de corte:
                         // Precio por pieza = peso por metro × (largo pedido + merma por corte) × precio por libra
                         // Subtotal = peso por metro × (largo pedido + merma por corte) × precio por libra × cantidad de cortes
-                        $subtotalFila = round($pesoPorMetro * $largoConMerma * $precioPorLibra * $cantidadCortes, 2);
-                        $precioPieza = $cantidadCortes > 0 ? round($pesoPorMetro * $largoConMerma * $precioPorLibra, 2) : $subtotalFila;
+                        $subtotalFila = round($librasPorCorte * $precioPorLibra * $cantidadCortes, 2);
+                        $precioPieza = $cantidadCortes > 0 ? round($librasPorCorte * $precioPorLibra, 2) : $subtotalFila;
 
                         $totalMetros += $metros;
                         $totalLibras += ($pesoPorMetro * $metros > 0 ? ($pesoPorMetro * $metros) : $libras);
@@ -707,10 +708,10 @@
                             @endif
                         </td>
                         <td class="text-end fw-bold">{{ number_format($metros, 4) }}</td>
-                        <td class="text-end">
+                        <td class="text-end" title="Peso/m: {{ $pesoPorMetro }} lb/m × ({{ number_format($largoPedido, 4) }} m + {{ number_format($mermaPorCorte, 4) }} m merma) = {{ number_format($librasPorCorte, 4) }} lb/corte × ${{ number_format($precioPorLibra, 2) }}/lb = ${{ number_format($librasPorCorte * $precioPorLibra, 4) }}">
                             ${{ number_format($precioPieza, 2) }}
                         </td>
-                        <td class="text-end"><strong>${{ number_format($subtotalFila, 2) }}</strong></td>
+                        <td class="text-end" title="{{ number_format($librasPorCorte, 4) }} lb/corte × ${{ number_format($precioPorLibra, 2) }}/lb × {{ $cantidadCortes }} cortes = ${{ number_format($librasPorCorte * $precioPorLibra * $cantidadCortes, 4) }}"><strong>${{ number_format($subtotalFila, 2) }}</strong></td>
                     </tr>
                 @endforeach
             </tbody>
